@@ -1,10 +1,9 @@
-// src/background/service-worker.ts
-import type { Message } from '../types/messaging';
+import type { Message, Task } from '../types/messaging';
 import { processText } from '../services/geminiService';
 
 console.log('Service Worker Loaded');
 
-const taskQueue: { tabId: number; operation: string; tabTitle: string }[] = [];
+const taskQueue: Task[] = [];
 let isProcessing = false;
 
 chrome.sidePanel
@@ -15,20 +14,34 @@ chrome.runtime.onMessage.addListener(
   (message: Message, _sender, sendResponse) => {
     if (message.type === 'START_PROCESSING') {
       const { tabs, operations } = message.payload;
+      taskQueue.length = 0; // Clear any previous queue
 
       chrome.tabs.query({}, (allTabs) => {
+        const initialTasks: Task[] = [];
         for (const tabId of tabs) {
           const tab = allTabs.find((t) => t.id === tabId);
           if (tab) {
             for (const operation of operations) {
-              taskQueue.push({
+              const taskId = `${tabId}-${operation}`;
+              const task: Task = {
+                taskId,
                 tabId,
                 operation,
                 tabTitle: tab.title || 'Untitled',
-              });
+                status: 'pending',
+              };
+              initialTasks.push(task);
+              taskQueue.push(task);
             }
           }
         }
+
+        // **NEW**: Send the entire list of pending tasks to the UI
+        chrome.runtime.sendMessage({
+          type: 'ALL_TASKS_QUEUED',
+          payload: { tasks: initialTasks },
+        });
+
         console.log('Current task queue:', taskQueue);
         sendResponse({ status: 'queued', queueLength: taskQueue.length });
         if (!isProcessing) processQueue();
@@ -54,6 +67,13 @@ async function processQueue() {
 
   if (task) {
     console.log(`Processing task: ${task.operation} on tab ${task.tabId}`);
+
+    // **NEW**: Notify UI that this specific task has started
+    chrome.runtime.sendMessage({
+      type: 'TASK_STARTED',
+      payload: { taskId: task.taskId },
+    });
+
     try {
       const scriptResults = await chrome.scripting.executeScript({
         target: { tabId: task.tabId },
@@ -66,23 +86,21 @@ async function processQueue() {
 
         chrome.runtime.sendMessage({
           type: 'TASK_COMPLETE',
-          payload: { ...task, result: apiResult },
+          payload: { ...task, status: 'complete', result: apiResult },
         });
       }
     } catch (error: unknown) {
-      console.error(`Task failed for tab ${task.tabId}:`, error);
-
-      // type guard to safely access the message
       let errorMessage = 'An unknown error occurred.';
       if (error instanceof Error) {
         errorMessage = error.message;
       }
+      console.error(`Task failed for tab ${task.tabId}:`, error);
       chrome.runtime.sendMessage({
         type: 'TASK_ERROR',
-        payload: { ...task, error: errorMessage },
+        payload: { ...task, status: 'error', error: errorMessage },
       });
     }
   }
 
-  setTimeout(processQueue, 1000); // Increased delay for API rate limits
+  setTimeout(processQueue, 1000);
 }

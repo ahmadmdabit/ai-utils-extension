@@ -1,4 +1,3 @@
-// src/features/TabSelectionList.tsx
 import { useState, useEffect } from 'react';
 import { TabItem } from '../components/molecules/TabItem';
 import type { Tab } from '../types/chrome';
@@ -34,7 +33,6 @@ export function TabSelectionList({
         setIsLoading(false);
       });
     } else {
-      // Fallback for non-extension environment
       console.warn('Chrome tabs API not available. Using mock data.');
       setIsLoading(false);
     }
@@ -45,6 +43,7 @@ export function TabSelectionList({
       console.warn(`Cannot select more than ${MAX_TABS} tabs.`);
       return;
     }
+    // Just call the prop function
     onTabSelect(tabId);
   };
 

@@ -23,17 +23,16 @@ export function Settings({ onClose }: SettingsProps) {
   };
 
   return (
-    <div className="p-4 bg-slate-900 text-white min-h-screen font-sans flex flex-col space-y-6">
+    <div className="p-4 bg-spotify-black text-white min-h-screen font-sans flex flex-col space-y-6">
       <div>
-        <h1 className="text-lg font-bold text-violet-400">Settings</h1>
-        <p className="text-sm text-slate-400">Manage your Gemini API Key.</p>
+        <h1 className="text-xl font-bold text-white">Settings</h1>
+        <p className="text-sm text-spotify-light-gray">
+          Manage your Gemini API Key.
+        </p>
       </div>
 
       <div className="space-y-2">
-        <label
-          htmlFor="apiKey"
-          className="text-md font-semibold text-slate-300"
-        >
+        <label htmlFor="apiKey" className="text-base font-semibold text-white">
           Gemini API Key
         </label>
         <input
@@ -41,16 +40,16 @@ export function Settings({ onClose }: SettingsProps) {
           type="password"
           value={apiKey}
           onChange={(e) => setApiKeyInput(e.target.value)}
-          className="w-full p-2 rounded-md bg-slate-800 border border-slate-700 focus:ring-violet-500 focus:border-violet-500"
+          className="w-full p-3 rounded-md bg-spotify-gray border border-gray-700 focus:ring-spotify-green focus:border-spotify-green"
           placeholder="Enter your API key"
         />
-        {status && <p className="text-sm text-green-400">{status}</p>}
+        {status && <p className="text-sm text-spotify-green mt-2">{status}</p>}
       </div>
 
       <div className="flex-grow"></div>
 
       <div className="flex justify-between">
-        <Button onClick={onClose} className="bg-slate-600 hover:bg-slate-700">
+        <Button onClick={onClose} variant="secondary">
           Back
         </Button>
         <Button onClick={handleSave}>Save Key</Button>

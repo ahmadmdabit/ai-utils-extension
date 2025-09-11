@@ -1,6 +1,5 @@
-// src/components/molecules/TabItem.tsx
-import type { Tab } from '../../types/chrome';
 import { Checkbox } from '../atoms/Checkbox';
+import type { Tab } from '../../types/chrome';
 
 interface TabItemProps {
   tab: Tab;
@@ -10,16 +9,14 @@ interface TabItemProps {
 
 export function TabItem({ tab, isSelected, onSelect }: TabItemProps) {
   return (
-    <div className="flex items-center p-2 rounded-md bg-slate-800 hover:bg-slate-700 transition-colors">
+    <div className="flex items-center p-3 rounded-lg bg-spotify-gray hover:bg-gray-700 transition-colors">
       <img
         src={tab.favIconUrl || 'icons/icon512.png'}
         alt="favicon"
-        className="w-4 h-4 mr-3"
+        className="w-5 h-5 mr-4"
       />
       <div className="flex-1 overflow-hidden">
-        <p className="text-sm font-medium text-slate-200 truncate">
-          {tab.title}
-        </p>
+        <p className="text-sm font-semibold text-white truncate">{tab.title}</p>
       </div>
       <Checkbox
         id={`tab-${tab.id}`}

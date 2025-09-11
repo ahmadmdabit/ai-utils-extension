@@ -1,4 +1,3 @@
-// src/features/OperationSelector.tsx
 import { useState } from 'react';
 import { Checkbox } from '../components/atoms/Checkbox';
 
@@ -14,13 +13,12 @@ export function OperationSelector({
   isDisabled,
 }: OperationSelectorProps) {
   const [isCombineChecked, setCombineChecked] = useState(false);
-
   const canCombine = selectedOps.length > 1;
 
   return (
     <fieldset
       disabled={isDisabled}
-      className="p-3 rounded-md bg-slate-800 space-y-4 disabled:opacity-50 transition-opacity"
+      className="p-4 rounded-lg bg-spotify-gray space-y-4 disabled:opacity-50 transition-opacity"
     >
       <div className="grid grid-cols-2 gap-4">
         <Checkbox
@@ -42,7 +40,7 @@ export function OperationSelector({
           onChange={() => onOpSelect('translate')}
         />
       </div>
-      <hr className="border-slate-700" />
+      <hr className="border-gray-700" />
       <Checkbox
         id="op-combine"
         label="Combine results"

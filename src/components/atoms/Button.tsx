@@ -1,17 +1,27 @@
-// src/components/atoms/Button.tsx
 import React from 'react';
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary';
+};
 
-export function Button({ children, className, ...props }: ButtonProps) {
+export function Button({
+  children,
+  className,
+  variant = 'primary',
+  ...props
+}: ButtonProps) {
   const baseClasses =
-    'px-4 py-2 rounded-md font-semibold text-white transition-colors duration-200';
-  const themeClasses =
-    'bg-violet-600 hover:bg-violet-700 disabled:bg-slate-500 disabled:cursor-not-allowed';
+    'px-6 py-2.5 rounded-full font-bold text-sm tracking-wider uppercase transition-transform transform hover:scale-105';
+
+  const themeClasses = {
+    primary:
+      'bg-spotify-green hover:bg-spotify-green-light text-black disabled:bg-gray-600 disabled:text-spotify-light-gray disabled:hover:scale-100 disabled:cursor-not-allowed',
+    secondary: 'bg-spotify-gray hover:bg-gray-700 text-white',
+  };
 
   return (
     <button
-      className={`${baseClasses} ${themeClasses} ${className}`}
+      className={`${baseClasses} ${themeClasses[variant]} ${className}`}
       {...props}
     >
       {children}

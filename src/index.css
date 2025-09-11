@@ -1,5 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
 @import "tailwindcss";
 /* 
 @tailwind base;
 @tailwind components;
-@tailwind utilities;  */
+@tailwind utilities;  
+*/
+
+/* Define custom theme tokens */
+@theme {
+  /* 🎨 Colors */
+  --color-spotify-black: #121212;
+  --color-spotify-gray: #282828;
+  --color-spotify-light-gray: #B3B3B3;
+  --color-spotify-green: #1DB954;
+  --color-spotify-green-light: #1ED760;
+
+  /* 🔤 Fonts */
+  --font-sans: Inter, sans-serif;
+}

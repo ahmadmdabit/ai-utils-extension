@@ -1,24 +1,22 @@
-// src/types/messaging.ts
 export interface StartProcessingPayload {
   tabs: number[];
   operations: string[];
 }
 
-export interface TaskResult {
+// A new, comprehensive Task type
+export interface Task {
+  taskId: string; // Unique ID for each task
   tabId: number;
   operation: string;
-  result: string;
   tabTitle: string;
-}
-
-export interface TaskError {
-  tabId: number;
-  operation: string;
-  error: string;
-  tabTitle: string;
+  status: 'pending' | 'processing' | 'complete' | 'error';
+  result?: string;
+  error?: string;
 }
 
 export type Message =
   | { type: 'START_PROCESSING'; payload: StartProcessingPayload }
-  | { type: 'TASK_COMPLETE'; payload: TaskResult }
-  | { type: 'TASK_ERROR'; payload: TaskError };
+  | { type: 'ALL_TASKS_QUEUED'; payload: { tasks: Task[] } }
+  | { type: 'TASK_STARTED'; payload: { taskId: string } }
+  | { type: 'TASK_COMPLETE'; payload: Task }
+  | { type: 'TASK_ERROR'; payload: Task };
