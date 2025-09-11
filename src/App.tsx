@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { Button } from './components/atoms/Button';
 import { TabSelectionList } from './features/TabSelectionList';
 import { OperationSelector } from './features/OperationSelector';
+import { sendMessageToServiceWorker } from './services/chromeService'; // <-- IMPORT
 
 function App() {
   const [selectedTabs, setSelectedTabs] = useState<number[]>([]);
   const [selectedOps, setSelectedOps] = useState<string[]>([]);
 
+  // ... (handleTabSelection and handleOperationSelection remain the same)
   const handleTabSelection = (tabId: number) => {
     setSelectedTabs((prev) =>
       prev.includes(tabId)
@@ -23,9 +25,14 @@ function App() {
   };
 
   const handleStart = () => {
-    console.log('Starting process with:', {
-      tabs: selectedTabs,
-      operations: selectedOps,
+    // --- UPDATE THIS FUNCTION ---
+    console.log('Sending job to service worker...');
+    sendMessageToServiceWorker({
+      type: 'START_PROCESSING',
+      payload: {
+        tabs: selectedTabs,
+        operations: selectedOps,
+      },
     });
   };
 
@@ -34,6 +41,7 @@ function App() {
   const isStartDisabled = !areTabsSelected || !areOpsSelected;
 
   return (
+    // ... (JSX remains the same)
     <div className="p-4 bg-slate-900 text-white min-h-screen font-sans flex flex-col space-y-6">
       <div>
         <h1 className="text-lg font-bold text-violet-400">AI Utils</h1>
