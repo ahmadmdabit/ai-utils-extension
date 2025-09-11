@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "AI Utils Extension",
+  "version": "0.1.0",
+  "description": "A powerful Chrome extension that leverages Google's Gemini AI.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_title": "Open AI Utils"
+  }
+}
