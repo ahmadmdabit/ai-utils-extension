@@ -1,49 +1,44 @@
 // src/background/service-worker.ts
 import type { Message } from '../types/messaging';
+import { processText } from '../services/geminiService';
 
 console.log('Service Worker Loaded');
 
-// A simple in-memory queue for our tasks
-const taskQueue: { tabId: number; operation: string }[] = [];
+const taskQueue: { tabId: number; operation: string; tabTitle: string }[] = [];
 let isProcessing = false;
 
-// Listen for the initial panel open action
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
-// Main message listener
 chrome.runtime.onMessage.addListener(
   (message: Message, _sender, sendResponse) => {
-    console.log('Received message:', message);
-
     if (message.type === 'START_PROCESSING') {
       const { tabs, operations } = message.payload;
 
-      // Create individual tasks and add them to the queue
-      for (const tabId of tabs) {
-        for (const operation of operations) {
-          taskQueue.push({ tabId, operation });
+      chrome.tabs.query({}, (allTabs) => {
+        for (const tabId of tabs) {
+          const tab = allTabs.find((t) => t.id === tabId);
+          if (tab) {
+            for (const operation of operations) {
+              taskQueue.push({
+                tabId,
+                operation,
+                tabTitle: tab.title || 'Untitled',
+              });
+            }
+          }
         }
-      }
-
-      console.log('Current task queue:', taskQueue);
-      sendResponse({ status: 'queued', queueLength: taskQueue.length });
-
-      // Start processing the queue if it's not already running
-      if (!isProcessing) {
-        processQueue();
-      }
+        console.log('Current task queue:', taskQueue);
+        sendResponse({ status: 'queued', queueLength: taskQueue.length });
+        if (!isProcessing) processQueue();
+      });
     }
-
-    // Return true to indicate you wish to send a response asynchronously
     return true;
   },
 );
 
-// This is the function that will be injected.
-// It's defined here for clarity, but its source is what's used.
-function getPageContent() {
+function getPageContent(): string {
   return document.body.innerText;
 }
 
@@ -59,25 +54,35 @@ async function processQueue() {
 
   if (task) {
     console.log(`Processing task: ${task.operation} on tab ${task.tabId}`);
-
     try {
-      const results = await chrome.scripting.executeScript({
+      const scriptResults = await chrome.scripting.executeScript({
         target: { tabId: task.tabId },
         func: getPageContent,
       });
 
-      if (results && results.length > 0) {
-        const pageContent = results[0].result;
-        console.log(
-          `Content extracted from tab ${task.tabId} (first 100 chars):`,
-          pageContent?.substring(0, 100),
-        );
-        // In Phase 3, we will send this 'pageContent' to the Gemini API.
+      if (scriptResults && scriptResults.length > 0) {
+        const pageContent = scriptResults[0].result;
+        const apiResult = await processText(task.operation, pageContent!);
+
+        chrome.runtime.sendMessage({
+          type: 'TASK_COMPLETE',
+          payload: { ...task, result: apiResult },
+        });
       }
-    } catch (error) {
-      console.error(`Failed to extract content from tab ${task.tabId}:`, error);
+    } catch (error: unknown) {
+      console.error(`Task failed for tab ${task.tabId}:`, error);
+
+      // type guard to safely access the message
+      let errorMessage = 'An unknown error occurred.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      chrome.runtime.sendMessage({
+        type: 'TASK_ERROR',
+        payload: { ...task, error: errorMessage },
+      });
     }
   }
 
-  setTimeout(processQueue, 200);
+  setTimeout(processQueue, 1000); // Increased delay for API rate limits
 }

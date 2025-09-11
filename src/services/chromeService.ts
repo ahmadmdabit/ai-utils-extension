@@ -14,3 +14,12 @@ export function sendMessageToServiceWorker(message: Message): void {
     }
   });
 }
+
+export async function setApiKey(apiKey: string): Promise<void> {
+  await chrome.storage.local.set({ geminiApiKey: apiKey });
+}
+
+export async function getApiKey(): Promise<string | null> {
+  const result = await chrome.storage.local.get('geminiApiKey');
+  return result.geminiApiKey || null;
+}
