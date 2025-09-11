@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from './components/atoms/Button';
 import { TabSelectionList } from './features/TabSelectionList';
 import { OperationSelector } from './features/OperationSelector';
+import { DataScrapeOptions } from './features/DataScrapeOptions';
 import { sendMessageToServiceWorker } from './services/chromeService';
 import { Settings } from './features/Settings';
 import { ResultsDisplay } from './features/ResultsDisplay';
-import type { Task, Message } from './types/messaging';
+import type { Task, Message, ScrapeOption } from './types/messaging';
 
 // A simple Gear Icon component
 function GearIcon() {
@@ -40,6 +41,11 @@ function App() {
   const [view, setView] = useState<View>('main');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // --- NEW STATE FOR SCRAPE OPTIONS ---
+  const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
+  const [customPrompt, setCustomPrompt] = useState('');
+  // ------------------------------------
 
   useEffect(() => {
     const handleMessage = (message: Message) => {
@@ -99,7 +105,12 @@ function App() {
     setTasks([]);
     sendMessageToServiceWorker({
       type: 'START_PROCESSING',
-      payload: { tabs: selectedTabs, operations: selectedOps },
+      payload: {
+        tabs: selectedTabs,
+        operations: selectedOps,
+        scrapeOption, // Pass new state
+        customPrompt, // Pass new state
+      },
     });
   };
 
@@ -109,8 +120,13 @@ function App() {
   };
 
   const areTabsSelected = selectedTabs.length > 0;
-  const areOpsSelected = selectedOps.length > 0;
-  const isStartDisabled = !areTabsSelected || !areOpsSelected || isProcessing;
+  const isScrapeSelected = selectedOps.includes('scrape');
+  const isCustomPromptRequired = scrapeOption === 'custom';
+  const isStartDisabled =
+    selectedTabs.length === 0 ||
+    selectedOps.length === 0 ||
+    (isScrapeSelected && isCustomPromptRequired && !customPrompt.trim()) ||
+    isProcessing;
 
   if (view === 'settings') {
     return <Settings onClose={() => setView('main')} />;
@@ -150,6 +166,17 @@ function App() {
           isDisabled={!areTabsSelected}
         />
       </div>
+
+      {/* --- CONDITIONALLY RENDER NEW COMPONENT --- */}
+      {isScrapeSelected && !isProcessing && (
+        <DataScrapeOptions
+          selectedOption={scrapeOption}
+          onOptionChange={setScrapeOption}
+          customPrompt={customPrompt}
+          onCustomPromptChange={setCustomPrompt}
+        />
+      )}
+      {/* ------------------------------------------ */}
 
       <ResultsDisplay tasks={tasks} onClear={handleClearResults} />
 

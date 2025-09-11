@@ -1,6 +1,15 @@
+export type ScrapeOption =
+  | 'helpful'
+  | 'headings'
+  | 'links'
+  | 'tables'
+  | 'custom';
+
 export interface StartProcessingPayload {
   tabs: number[];
   operations: string[];
+  scrapeOption: ScrapeOption;
+  customPrompt?: string;
 }
 
 // A new, comprehensive Task type
@@ -12,6 +21,9 @@ export interface Task {
   status: 'pending' | 'processing' | 'complete' | 'error';
   result?: string;
   error?: string;
+  // Add scrape-specific data to the task
+  scrapeOption?: ScrapeOption;
+  customPrompt?: string;
 }
 
 export type Message =

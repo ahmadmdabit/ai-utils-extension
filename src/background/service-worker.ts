@@ -1,5 +1,6 @@
-import type { Message, Task } from '../types/messaging';
+import type { Message, Task, ScrapeOption } from '../types/messaging';
 import { processText } from '../services/geminiService';
+import { getHeadings, getLinks, getTables } from './scrapers';
 
 console.log('Service Worker Loaded');
 
@@ -10,10 +11,11 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
+// --- UPDATE onMessage LISTENER ---
 chrome.runtime.onMessage.addListener(
   (message: Message, _sender, sendResponse) => {
     if (message.type === 'START_PROCESSING') {
-      const { tabs, operations } = message.payload;
+      const { tabs, operations, scrapeOption, customPrompt } = message.payload;
       taskQueue.length = 0; // Clear any previous queue
 
       chrome.tabs.query({}, (allTabs) => {
@@ -29,6 +31,8 @@ chrome.runtime.onMessage.addListener(
                 operation,
                 tabTitle: tab.title || 'Untitled',
                 status: 'pending',
+                scrapeOption: operation === 'scrape' ? scrapeOption : undefined,
+                customPrompt: operation === 'scrape' ? customPrompt : undefined,
               };
               initialTasks.push(task);
               taskQueue.push(task);
@@ -51,8 +55,37 @@ chrome.runtime.onMessage.addListener(
   },
 );
 
-function getPageContent(): string {
-  return document.body.innerText;
+// --- NEW HELPER FUNCTION FOR DOM SCRAPING ---
+async function executeDomScrape(
+  tabId: number,
+  option: ScrapeOption,
+): Promise<string> {
+  let funcToInject: () => unknown;
+
+  switch (option) {
+    case 'headings':
+      funcToInject = getHeadings;
+      break;
+    case 'links':
+      funcToInject = getLinks;
+      break;
+    case 'tables':
+      funcToInject = getTables;
+      break;
+    default:
+      return 'Invalid DOM scrape option.';
+  }
+
+  const results = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: funcToInject,
+  });
+
+  if (results && results.length > 0) {
+    // Format the result for nice display
+    return JSON.stringify(results[0].result, null, 2);
+  }
+  return 'No data found.';
 }
 
 async function processQueue() {
@@ -75,20 +108,66 @@ async function processQueue() {
     });
 
     try {
-      const scriptResults = await chrome.scripting.executeScript({
-        target: { tabId: task.tabId },
-        func: getPageContent,
-      });
+      let apiResult: string;
 
-      if (scriptResults && scriptResults.length > 0) {
-        const pageContent = scriptResults[0].result;
-        const apiResult = await processText(task.operation, pageContent!);
+      if (task.operation === 'scrape' && task.scrapeOption) {
+        // --- SCRAPE LOGIC ---
+        switch (task.scrapeOption) {
+          case 'helpful':
+            const contentForHelpfulResult =
+              await chrome.scripting.executeScript({
+                target: { tabId: task.tabId },
+                func: () => document.body.innerText,
+              });
+            const contentForHelpful =
+              contentForHelpfulResult && contentForHelpfulResult[0]
+                ? contentForHelpfulResult[0].result || ''
+                : '';
+            apiResult = await processText(
+              'Extract helpful information from the following text, formatted nicely:',
+              contentForHelpful,
+            );
+            break;
+          case 'custom':
+            const contentForCustomResult = await chrome.scripting.executeScript(
+              {
+                target: { tabId: task.tabId },
+                func: () => document.body.innerText,
+              },
+            );
+            const contentForCustom =
+              contentForCustomResult && contentForCustomResult[0]
+                ? contentForCustomResult[0].result || ''
+                : '';
+            const prompt = `${task.customPrompt || ''}:
 
-        chrome.runtime.sendMessage({
-          type: 'TASK_COMPLETE',
-          payload: { ...task, status: 'complete', result: apiResult },
+${contentForCustom}`;
+            apiResult = await processText('custom', prompt); // Use a generic operation name
+            break;
+          default: // headings, links, tables
+            apiResult = await executeDomScrape(
+              task.tabId,
+              task.scrapeOption || 'helpful',
+            );
+            break;
+        }
+      } else {
+        // --- ORIGINAL LOGIC for Summarize/Translate ---
+        const scriptResults = await chrome.scripting.executeScript({
+          target: { tabId: task.tabId },
+          func: () => document.body.innerText,
         });
+        const pageContent =
+          scriptResults && scriptResults[0]
+            ? scriptResults[0].result || ''
+            : '';
+        apiResult = await processText(task.operation, pageContent);
       }
+
+      chrome.runtime.sendMessage({
+        type: 'TASK_COMPLETE',
+        payload: { ...task, status: 'complete', result: apiResult },
+      });
     } catch (error: unknown) {
       let errorMessage = 'An unknown error occurred.';
       if (error instanceof Error) {

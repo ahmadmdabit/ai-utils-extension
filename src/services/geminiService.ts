@@ -10,8 +10,15 @@ function getPromptForOperation(operation: string, text: string): string {
       return `Please provide a concise summary of the following text:\n\n${text}`;
     case 'translate':
       return `Translate the following text to English:\n\n${text}`;
+    case 'custom':
+      // For custom prompts, the text is already the full prompt
+      return text;
     // Add more scrape operations later
     default:
+      // For scrape operations like 'helpful', the operation is the prompt itself
+      if (operation.startsWith('Extract')) {
+        return `${operation}:\n\n${text}`;
+      }
       return text;
   }
 }
