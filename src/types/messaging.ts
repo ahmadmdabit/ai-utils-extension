@@ -6,7 +6,7 @@ export type ScrapeOption =
   | 'custom';
 
 export type LanguageOption = 'Turkish' | 'Arabic' | 'English' | 'custom';
-// --- NEW: Define the available pipelines ---
+
 export type PipelineOperation =
   | 'summarize'
   | 'translate'
@@ -14,22 +14,28 @@ export type PipelineOperation =
   | 'translated-summary'
   | 'dual-lang-summary';
 
+// --- NEW: Define the available models ---
+export type GeminiModel =
+  | 'gemini-2.5-pro'
+  | 'gemini-2.5-flash'
+  | 'gemini-2.5-flash-lite';
+
 export interface StartProcessingPayload {
   tabs: number[];
-  pipeline: PipelineOperation; // <-- REPLACES 'operations'
+  pipeline: PipelineOperation;
   scrapeOption: ScrapeOption;
   customPrompt?: string;
   languageOption: LanguageOption;
   customLanguage?: string;
-  // 'combineResults' (for tabs) is still relevant
   combineResults: boolean;
+  selectedModel: GeminiModel; // <-- ADD
 }
 
 // A new, comprehensive Task type
 export interface Task {
   taskId: string; // Unique ID for each task
   tabId: number;
-  operation: PipelineOperation; // <-- Use the new type
+  operation: PipelineOperation;
   tabTitle: string;
   status: 'pending' | 'processing' | 'complete' | 'error';
   result?: string;
@@ -39,7 +45,8 @@ export interface Task {
   customPrompt?: string;
   languageOption?: LanguageOption;
   customLanguage?: string;
-  isCombinedResult?: boolean; // <-- ADD: To flag the final synthesized result
+  isCombinedResult?: boolean;
+  selectedModel?: GeminiModel; // <-- ADD
 }
 
 export type Message =

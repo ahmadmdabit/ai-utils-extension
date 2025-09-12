@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Button } from './components/atoms/Button';
 import { TabSelectionList } from './features/TabSelectionList';
-import { PipelineSelector } from './features/PipelineSelector'; // <-- NEW
+import { PipelineSelector } from './features/PipelineSelector';
 import { DataScrapeOptions } from './features/DataScrapeOptions';
 import { LanguageSelector } from './features/LanguageSelector';
 import { sendMessageToServiceWorker } from './services/chromeService';
 import { Settings } from './features/Settings';
 import { ResultsDisplay } from './features/ResultsDisplay';
+import { ModelSelector } from './features/ModelSelector'; // <-- NEW
 import type {
   Task,
   Message,
   ScrapeOption,
   LanguageOption,
   PipelineOperation,
+  GeminiModel,
 } from './types/messaging';
 
 // A simple Gear Icon component
@@ -46,6 +48,9 @@ function App() {
   const [selectedTabs, setSelectedTabs] = useState<number[]>([]);
   const [selectedPipeline, setSelectedPipeline] =
     useState<PipelineOperation>('summarize');
+  const [selectedModel, setSelectedModel] = useState<GeminiModel>(
+    'gemini-2.5-flash-lite',
+  );
   const [view, setView] = useState<View>('main');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -54,7 +59,7 @@ function App() {
   const [languageOption, setLanguageOption] =
     useState<LanguageOption>('English');
   const [customLanguage, setCustomLanguage] = useState('');
-  const [isCombineChecked /*, setIsCombineChecked*/] = useState(false);
+  const [isCombineChecked] = useState(false);
 
   useEffect(() => {
     const handleMessage = (message: Message) => {
@@ -118,6 +123,7 @@ function App() {
         languageOption,
         customLanguage,
         combineResults: isCombineChecked,
+        selectedModel, // <-- Pass the new state
       },
     });
   };
@@ -178,6 +184,17 @@ function App() {
           isDisabled={!areTabsSelected}
         />
       </div>
+
+      {/* --- ADD THE NEW MODEL SELECTOR --- */}
+      <div className="space-y-2">
+        <h2 className="text-base font-bold text-white">3. Configure</h2>
+        <ModelSelector
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+          isDisabled={!areTabsSelected}
+        />
+      </div>
+      {/* ---------------------------------- */}
 
       {isScrapeSelected && !isProcessing && (
         <DataScrapeOptions

@@ -59,6 +59,15 @@ export default tseslint.config(
     },
   },
 
+  // --- ADD THIS NEW CONFIGURATION OBJECT ---
+  {
+    files: ['**/*.test.{ts,tsx}'], // Target only test files
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off', // Turn the rule off for these files
+    },
+  },
+  // -----------------------------------------
+
   // Prettier configuration - MUST BE THE LAST ONE
   prettierConfig,
 );

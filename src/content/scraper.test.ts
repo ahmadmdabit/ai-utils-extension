@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-
-// This is the function from the content script. We test it directly.
-function scrapeTextContent(): string {
-  // This function relies on the global `document` object.
-  return document.body.innerText;
-}
+import { scrapeTextContent } from './scraper';
 
 describe('scrapeTextContent function', () => {
   it('should return the innerText of the document body', () => {
