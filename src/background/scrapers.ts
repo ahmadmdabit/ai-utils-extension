@@ -4,7 +4,7 @@
 export function getHeadings() {
   const headings = Array.from(document.querySelectorAll('h1, h2, h3'));
   return headings
-    .map((h) => (h as HTMLElement).innerText.trim())
+    .map((h) => (h.textContent || '').trim())
     .filter(Boolean);
 }
 
@@ -12,7 +12,7 @@ export function getLinks() {
   const links = Array.from(document.querySelectorAll('a[href]'));
   return links
     .map((a) => ({
-      text: (a as HTMLElement).innerText.trim(),
+      text: (a.textContent || '').trim(),
       href: (a as HTMLAnchorElement).href,
     }))
     .filter(
@@ -26,7 +26,7 @@ export function getTables() {
     const rows = Array.from(table.querySelectorAll('tr'));
     return rows.map((row) => {
       const cells = Array.from(row.querySelectorAll('td, th'));
-      return cells.map((cell) => (cell as HTMLElement).innerText.trim());
+      return cells.map((cell) => (cell.textContent || '').trim());
     });
   });
 }

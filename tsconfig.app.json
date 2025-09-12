@@ -23,7 +23,9 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "types": ["vitest/globals", "chrome"]
   },
-  "include": ["src"]
+  "include": ["src", "src/setupTests.ts"]
 }
