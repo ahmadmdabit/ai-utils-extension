@@ -4,7 +4,7 @@ This document provides essential context about the "AI Utils Extension" project 
 
 ## Project Overview
 
-This is a Chrome Extension built with React, TypeScript, and Vite. It leverages Google's Gemini AI to provide intelligent features for managing and analyzing browser tabs. Key features include AI-powered summarization, translation, and data extraction from open tabs, presented in a modern, Spotify-inspired UI.
+This is a Chrome Extension built with React, TypeScript, and Vite. It leverages Google's Gemini AI to provide intelligent features for managing and analyzing browser tabs. Key features include AI-powered summarization, translation with language selection, and data extraction from open tabs, presented in a modern, Spotify-inspired UI.
 
 ## Tech Stack
 
@@ -56,7 +56,7 @@ To load the extension in Chrome:
 *   **Git Workflow:** GitFlow model (`main`, `develop`, `feature/*` branches).
 *   **Commit Messages:** Conventional Commits specification.
 *   **Coding Style:** Enforced by Prettier (formatting) and ESLint (linting). Husky and lint-staged automate linting/formatting on commit.
-*   **Testing:** Unit & Component tests with Vitest and React Testing Library (though specific test files were not found in the initial scan).
+*   **Testing:** Unit & Component tests with Vitest and React Testing Library.
 *   **Architecture:** The background script (`src/background/service-worker.ts`) handles message passing, task queuing, and interaction with Chrome APIs like `scripting` to inject content scripts and fetch page content. The `geminiService.ts` handles communication with the Gemini API.
 
 ## Key Files
@@ -68,6 +68,7 @@ To load the extension in Chrome:
 *   `src/background/service-worker.ts`: The extension's service worker, responsible for core logic like task processing.
 *   `src/services/geminiService.ts`: Service for interacting with the Google Gemini API.
 *   `src/types/messaging.ts`: Defines TypeScript types for messages passed within the extension.
+*   `src/features/LanguageSelector.tsx`: Component for selecting translation languages.
 
 ## React Development Expertise
 

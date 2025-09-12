@@ -1,19 +1,24 @@
-import { useState } from 'react';
 import { Checkbox } from '../components/atoms/Checkbox';
 
 interface OperationSelectorProps {
   selectedOps: string[];
   onOpSelect: (op: string) => void;
   isDisabled: boolean;
+  isCombineChecked: boolean;
+  onCombineChange: (isChecked: boolean) => void;
+  selectedTabCount: number; // <-- ADD
 }
 
 export function OperationSelector({
   selectedOps,
   onOpSelect,
   isDisabled,
+  isCombineChecked,
+  onCombineChange,
+  selectedTabCount, // <-- DESTRUCTURE
 }: OperationSelectorProps) {
-  const [isCombineChecked, setCombineChecked] = useState(false);
-  const canCombine = selectedOps.length > 1;
+  // --- FIX: Logic now correctly depends on tab count ---
+  const canCombine = selectedTabCount > 1;
 
   return (
     <fieldset
@@ -46,7 +51,7 @@ export function OperationSelector({
         label="Combine results"
         disabled={!canCombine}
         checked={isCombineChecked && canCombine}
-        onChange={() => setCombineChecked((prev) => !prev)}
+        onChange={(e) => onCombineChange(e.target.checked)}
       />
     </fieldset>
   );

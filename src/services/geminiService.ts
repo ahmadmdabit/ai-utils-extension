@@ -4,14 +4,22 @@ import { GeminiApiError } from '../utils/errors';
 const API_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
-function getPromptForOperation(operation: string, text: string, language?: string): string {
+function getPromptForOperation(
+  operation: string,
+  text: string,
+  language?: string,
+): string {
   switch (operation) {
     case 'summarize':
-      return `Please provide a concise summary of the following text:\n\n${text}`;
+      return `Please provide a concise summary of the following text:
+
+${text}`;
     case 'translate':
       // Use the provided language, default to English
       const targetLanguage = language || 'English';
-      return `Translate the following text to ${targetLanguage}:\n\n${text}`;
+      return `Translate the following text to ${targetLanguage}:
+
+${text}`;
     case 'custom':
       // For custom prompts, the text is already the full prompt
       return text;
@@ -19,15 +27,59 @@ function getPromptForOperation(operation: string, text: string, language?: strin
     default:
       // For scrape operations like 'helpful', the operation is the prompt itself
       if (operation.startsWith('Extract')) {
-        return `${operation}:\n\n${text}`;
+        return `${operation}:
+
+${text}`;
       }
       return text;
   }
 }
 
+function getSynthesisPrompt(
+  operation: string,
+  texts: string[],
+  language?: string,
+): string {
+  const joinedTexts = texts.map(
+    (text, i) => `--- Document ${i + 1} ---
+${text}`,
+  ).join(`
+
+`);
+
+  switch (operation) {
+    case 'summarize':
+      return `Based on the following documents, create a single, cohesive synthesis that identifies the key themes, any conflicting information, and the overall conclusion.
+
+${joinedTexts}`;
+    case 'translate':
+      const targetLanguage = language || 'English';
+      return `Translate each of the following documents to ${targetLanguage}, keeping them clearly separated.
+
+${joinedTexts}`;
+    default:
+      return `Combine and present the following information in a clear, structured format:
+
+${joinedTexts}`;
+  }
+}
+
+function getTitleGenerationPrompt(texts: string[]): string {
+  const joinedTexts = texts.map(
+    (text, i) => `--- Document ${i + 1} ---
+${text}`,
+  ).join(`
+
+`);
+  return `Based on the following documents, generate a short, appropriate title (less than 10 words) that summarizes the main topic.
+
+${joinedTexts}`;
+}
+
+// Update processText to handle the new 'generate-title' operation
 export async function processText(
   operation: string,
-  text: string,
+  text: string | string[],
   language?: string,
 ): Promise<string> {
   const apiKey = await getApiKey();
@@ -38,8 +90,14 @@ export async function processText(
     );
   }
 
-  // Pass the language to the prompt constructor
-  const prompt = getPromptForOperation(operation, text, language);
+  let prompt: string;
+  if (operation === 'generate-title' && Array.isArray(text)) {
+    prompt = getTitleGenerationPrompt(text);
+  } else if (Array.isArray(text)) {
+    prompt = getSynthesisPrompt(operation, text, language);
+  } else {
+    prompt = getPromptForOperation(operation, text, language);
+  }
 
   const response = await fetch(`${API_URL}?key=${apiKey}`, {
     method: 'POST',

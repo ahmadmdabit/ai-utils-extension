@@ -30,12 +30,19 @@ export function ResultsDisplay({ tasks, onClear }: ResultsDisplayProps) {
       </div>
       <div className="p-2 rounded-lg bg-spotify-gray space-y-4 max-h-96 overflow-y-auto">
         {tasks.map((task) => (
-          <div key={task.taskId} className="p-2">
+          <div
+            key={task.taskId}
+            className="p-2 border-b border-gray-700 pb-2 last:border-b-0"
+          >
             <div className="flex justify-between items-center">
               <div className="w-full">
-                <p className="text-sm font-bold text-white truncate">
+                {/* --- UPDATE THIS PART --- */}
+                <p
+                  className={`text-sm font-bold truncate ${task.isCombinedResult ? 'text-spotify-green' : 'text-white'}`}
+                >
                   {task.tabTitle}
                 </p>
+                {/* ---------------------- */}
                 <p className="text-xs text-spotify-light-gray capitalize">
                   {task.operation}
                 </p>

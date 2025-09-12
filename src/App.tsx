@@ -7,7 +7,12 @@ import { LanguageSelector } from './features/LanguageSelector';
 import { sendMessageToServiceWorker } from './services/chromeService';
 import { Settings } from './features/Settings';
 import { ResultsDisplay } from './features/ResultsDisplay';
-import type { Task, Message, ScrapeOption, LanguageOption } from './types/messaging';
+import type {
+  Task,
+  Message,
+  ScrapeOption,
+  LanguageOption,
+} from './types/messaging';
 
 // A simple Gear Icon component
 function GearIcon() {
@@ -47,35 +52,65 @@ function App() {
   const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
   const [customPrompt, setCustomPrompt] = useState('');
   // ------------------------------------
-  
+
   // --- NEW STATE FOR LANGUAGE OPTIONS ---
-  const [languageOption, setLanguageOption] = useState<LanguageOption>('English');
+  const [languageOption, setLanguageOption] =
+    useState<LanguageOption>('English');
   const [customLanguage, setCustomLanguage] = useState('');
+  // ------------------------------------
+
+  // --- NEW STATE FOR COMBINE RESULTS ---
+  const [isCombineChecked, setIsCombineChecked] = useState(false);
   // ------------------------------------
 
   useEffect(() => {
     const handleMessage = (message: Message) => {
       switch (message.type) {
         case 'ALL_TASKS_QUEUED':
-          setTasks(message.payload.tasks);
+          // Only display the initial tasks if we are NOT combining.
+          if (!message.payload.tasks.some((t) => t.isCombinedResult)) {
+            setTasks(message.payload.tasks);
+          }
           setIsProcessing(true);
           break;
         case 'TASK_STARTED':
-          setTasks((prev) =>
-            prev.map((task) =>
-              task.taskId === message.payload.taskId
-                ? { ...task, status: 'processing' }
-                : task,
-            ),
-          );
+          // Add the task to the list if it's not already there (for combined tasks)
+          setTasks((prev) => {
+            if (prev.find((t) => t.taskId === message.payload.taskId)) {
+              return prev.map((task) =>
+                task.taskId === message.payload.taskId
+                  ? { ...task, status: 'processing' }
+                  : task,
+              );
+            }
+            // This handles the new combined task placeholder
+            const placeholderTask: Task = {
+              taskId: message.payload.taskId,
+              tabId: 0,
+              operation: message.payload.taskId.replace('combined-', ''),
+              tabTitle: `Combining ${message.payload.taskId.replace('combined-', '')}...`,
+              status: 'processing',
+              isCombinedResult: true,
+            };
+            return [...prev, placeholderTask];
+          });
           break;
         case 'TASK_COMPLETE':
         case 'TASK_ERROR':
-          setTasks((prev) =>
-            prev.map((task) =>
+          setTasks((prev) => {
+            // If it's a combined result, it might be a new entry or an update to the placeholder
+            if (message.payload.isCombinedResult) {
+              // Replace all non-combined tasks of the same operation type
+              const otherTasks = prev.filter(
+                (t) => t.operation !== message.payload.operation,
+              );
+              return [...otherTasks, message.payload];
+            }
+            // Otherwise, just update the existing task
+            return prev.map((task) =>
               task.taskId === message.payload.taskId ? message.payload : task,
-            ),
-          );
+            );
+          });
           break;
       }
     };
@@ -85,12 +120,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (
-      tasks.length > 0 &&
-      tasks.every((t) => t.status === 'complete' || t.status === 'error')
-    ) {
+    if (tasks.length === 0) {
       setIsProcessing(false);
+      return;
     }
+    const isStillProcessing = tasks.some(
+      (t) => t.status === 'pending' || t.status === 'processing',
+    );
+    setIsProcessing(isStillProcessing);
   }, [tasks]);
 
   const handleTabSelection = (tabId: number) => {
@@ -118,6 +155,7 @@ function App() {
         customPrompt, // Pass new state
         languageOption, // Pass new state
         customLanguage, // Pass new state
+        combineResults: isCombineChecked, // <-- Pass the new state
       },
     });
   };
@@ -137,7 +175,9 @@ function App() {
     selectedTabs.length === 0 ||
     selectedOps.length === 0 ||
     (isScrapeSelected && isCustomPromptRequired && !customPrompt.trim()) ||
-    (isTranslateSelected && isCustomLanguageRequired && !customLanguage.trim()) || // <-- ADD
+    (isTranslateSelected &&
+      isCustomLanguageRequired &&
+      !customLanguage.trim()) || // <-- ADD
     isProcessing;
 
   if (view === 'settings') {
@@ -176,6 +216,9 @@ function App() {
           selectedOps={selectedOps}
           onOpSelect={handleOperationSelection}
           isDisabled={!areTabsSelected}
+          isCombineChecked={isCombineChecked}
+          onCombineChange={setIsCombineChecked}
+          selectedTabCount={selectedTabs.length} // <-- Pass tab count
         />
       </div>
 
@@ -188,7 +231,7 @@ function App() {
           onCustomPromptChange={setCustomPrompt}
         />
       )}
-      
+
       {/* --- CONDITIONALLY RENDER NEW COMPONENT --- */}
       {isTranslateSelected && !isProcessing && (
         <LanguageSelector

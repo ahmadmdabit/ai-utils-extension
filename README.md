@@ -15,7 +15,7 @@
   - **Headings & Links**: Quickly pull all headings or hyperlinks.
   - **Tabular Data**: Extract data from HTML tables.
   - **Custom Prompts (AI)**: Ask the AI to find exactly what you need.
-- **Smart Tab Translation**: Translate the content of any tab to English.
+- **Smart Tab Translation**: Translate the content of any tab to your preferred language with language selection options including English, Turkish, Arabic, or any custom language.
 - **Combine Results**: Synthesize information from multiple tabs into a single, cohesive output.
 
 ### 🎨 User Experience
@@ -23,6 +23,7 @@
 - **Real-Time Feedback**: See the live status of each task (`Pending`, `Processing`, `Complete`, `Error`).
 - **Secure API Key Management**: Your Gemini API key is stored securely in local browser storage.
 - **Conditional UI**: The interface intelligently enables and disables options to guide you to a valid configuration.
+- **Language Selection**: Choose from predefined languages or specify a custom language for translations.
 
 ## 🚀 Tech Stack
 
@@ -79,7 +80,8 @@ Follow these instructions to set up the development environment on your local ma
 4.  Click **"Back"** to return to the main view.
 5.  Select up to 3 open tabs you wish to process.
 6.  Select one or more operations (e.g., "Summarize").
-7.  Click **"Start Processing"** and watch the results appear in real-time.
+7.  For translation operations, select your target language from the language options (English, Turkish, Arabic, or custom).
+8.  Click **"Start Processing"** and watch the results appear in real-time.
 
 ## 📜 Development Conventions
 

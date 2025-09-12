@@ -13,7 +13,8 @@ export interface StartProcessingPayload {
   scrapeOption: ScrapeOption;
   customPrompt?: string;
   languageOption: LanguageOption; // <-- ADD
-  customLanguage?: string;      // <-- ADD
+  customLanguage?: string; // <-- ADD
+  combineResults: boolean; // <-- ADD
 }
 
 // A new, comprehensive Task type
@@ -29,7 +30,8 @@ export interface Task {
   scrapeOption?: ScrapeOption;
   customPrompt?: string;
   languageOption?: LanguageOption; // <-- ADD
-  customLanguage?: string;       // <-- ADD
+  customLanguage?: string; // <-- ADD
+  isCombinedResult?: boolean; // <-- ADD: To flag the final synthesized result
 }
 
 export type Message =
