@@ -4,7 +4,7 @@ import type { Tab } from '../types/chrome';
 
 const MAX_TABS = 3;
 
-interface TabSelectionListProps {
+export interface TabSelectionListProps {
   selectedTabs: number[];
   onTabSelect: (tabId: number) => void;
 }

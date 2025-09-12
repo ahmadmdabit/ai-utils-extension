@@ -1,6 +1,6 @@
 import type { ScrapeOption } from '../types/messaging';
 
-interface DataScrapeOptionsProps {
+export interface DataScrapeOptionsProps {
   selectedOption: ScrapeOption;
   onOptionChange: (option: ScrapeOption) => void;
   customPrompt: string;

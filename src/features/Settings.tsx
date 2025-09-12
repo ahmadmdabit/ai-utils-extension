@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/atoms/Button';
 import { getApiKey, setApiKey } from '../services/chromeService';
 
-interface SettingsProps {
+export interface SettingsProps {
   onClose: () => void;
 }
 

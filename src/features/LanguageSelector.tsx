@@ -1,6 +1,6 @@
 import type { LanguageOption } from '../types/messaging';
 
-interface LanguageSelectorProps {
+export interface LanguageSelectorProps {
   selectedLanguage: LanguageOption;
   onLanguageChange: (option: LanguageOption) => void;
   customLanguage: string;
@@ -35,7 +35,10 @@ export function LanguageSelector({
               onChange={() => onLanguageChange(id)}
               className="h-4 w-4 border-spotify-light-gray bg-spotify-gray text-spotify-green focus:ring-spotify-green"
             />
-            <label htmlFor={`lang-${id}`} className="ml-2 block text-sm text-spotify-light-gray">
+            <label
+              htmlFor={`lang-${id}`}
+              className="ml-2 block text-sm text-spotify-light-gray"
+            >
               {label}
             </label>
           </div>

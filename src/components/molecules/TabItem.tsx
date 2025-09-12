@@ -1,7 +1,7 @@
 import { Checkbox } from '../atoms/Checkbox';
 import type { Tab } from '../../types/chrome';
 
-interface TabItemProps {
+export interface TabItemProps {
   tab: Tab;
   isSelected: boolean;
   onSelect: (tabId: number) => void;

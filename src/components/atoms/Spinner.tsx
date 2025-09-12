@@ -1,6 +1,8 @@
 export function Spinner() {
   return (
     <svg
+      role="status" // <-- Add role for accessibility
+      data-testid="spinner"
       className="animate-spin h-5 w-5 text-violet-400"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"

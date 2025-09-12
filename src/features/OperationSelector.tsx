@@ -1,6 +1,6 @@
 import { Checkbox } from '../components/atoms/Checkbox';
 
-interface OperationSelectorProps {
+export interface OperationSelectorProps {
   selectedOps: string[];
   onOpSelect: (op: string) => void;
   isDisabled: boolean;

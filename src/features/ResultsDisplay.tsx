@@ -1,7 +1,7 @@
 import type { Task } from '../types/messaging';
 import { Spinner } from '../components/atoms/Spinner';
 
-interface ResultsDisplayProps {
+export interface ResultsDisplayProps {
   tasks: Task[];
   onClear: () => void;
 }

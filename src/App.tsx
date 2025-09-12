@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from './components/atoms/Button';
 import { TabSelectionList } from './features/TabSelectionList';
-import { OperationSelector } from './features/OperationSelector';
+import { PipelineSelector } from './features/PipelineSelector'; // <-- NEW
 import { DataScrapeOptions } from './features/DataScrapeOptions';
 import { LanguageSelector } from './features/LanguageSelector';
 import { sendMessageToServiceWorker } from './services/chromeService';
@@ -12,6 +12,7 @@ import type {
   Message,
   ScrapeOption,
   LanguageOption,
+  PipelineOperation,
 } from './types/messaging';
 
 // A simple Gear Icon component
@@ -43,74 +44,41 @@ type View = 'main' | 'settings';
 
 function App() {
   const [selectedTabs, setSelectedTabs] = useState<number[]>([]);
-  const [selectedOps, setSelectedOps] = useState<string[]>([]);
+  const [selectedPipeline, setSelectedPipeline] =
+    useState<PipelineOperation>('summarize');
   const [view, setView] = useState<View>('main');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // --- NEW STATE FOR SCRAPE OPTIONS ---
   const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
   const [customPrompt, setCustomPrompt] = useState('');
-  // ------------------------------------
-
-  // --- NEW STATE FOR LANGUAGE OPTIONS ---
   const [languageOption, setLanguageOption] =
     useState<LanguageOption>('English');
   const [customLanguage, setCustomLanguage] = useState('');
-  // ------------------------------------
-
-  // --- NEW STATE FOR COMBINE RESULTS ---
-  const [isCombineChecked, setIsCombineChecked] = useState(false);
-  // ------------------------------------
+  const [isCombineChecked /*, setIsCombineChecked*/] = useState(false);
 
   useEffect(() => {
     const handleMessage = (message: Message) => {
       switch (message.type) {
         case 'ALL_TASKS_QUEUED':
-          // Only display the initial tasks if we are NOT combining.
-          if (!message.payload.tasks.some((t) => t.isCombinedResult)) {
-            setTasks(message.payload.tasks);
-          }
+          setTasks(message.payload.tasks);
           setIsProcessing(true);
           break;
         case 'TASK_STARTED':
-          // Add the task to the list if it's not already there (for combined tasks)
-          setTasks((prev) => {
-            if (prev.find((t) => t.taskId === message.payload.taskId)) {
-              return prev.map((task) =>
-                task.taskId === message.payload.taskId
-                  ? { ...task, status: 'processing' }
-                  : task,
-              );
-            }
-            // This handles the new combined task placeholder
-            const placeholderTask: Task = {
-              taskId: message.payload.taskId,
-              tabId: 0,
-              operation: message.payload.taskId.replace('combined-', ''),
-              tabTitle: `Combining ${message.payload.taskId.replace('combined-', '')}...`,
-              status: 'processing',
-              isCombinedResult: true,
-            };
-            return [...prev, placeholderTask];
-          });
+          setTasks((prev) =>
+            prev.map((task) =>
+              task.taskId === message.payload.taskId
+                ? { ...task, status: 'processing' }
+                : task,
+            ),
+          );
           break;
         case 'TASK_COMPLETE':
         case 'TASK_ERROR':
-          setTasks((prev) => {
-            // If it's a combined result, it might be a new entry or an update to the placeholder
-            if (message.payload.isCombinedResult) {
-              // Replace all non-combined tasks of the same operation type
-              const otherTasks = prev.filter(
-                (t) => t.operation !== message.payload.operation,
-              );
-              return [...otherTasks, message.payload];
-            }
-            // Otherwise, just update the existing task
-            return prev.map((task) =>
+          setTasks((prev) =>
+            prev.map((task) =>
               task.taskId === message.payload.taskId ? message.payload : task,
-            );
-          });
+            ),
+          );
           break;
       }
     };
@@ -138,24 +106,18 @@ function App() {
     );
   };
 
-  const handleOperationSelection = (op: string) => {
-    setSelectedOps((prev) =>
-      prev.includes(op) ? prev.filter((item) => item !== op) : [...prev, op],
-    );
-  };
-
   const handleStart = () => {
     setTasks([]);
     sendMessageToServiceWorker({
       type: 'START_PROCESSING',
       payload: {
         tabs: selectedTabs,
-        operations: selectedOps,
-        scrapeOption, // Pass new state
-        customPrompt, // Pass new state
-        languageOption, // Pass new state
-        customLanguage, // Pass new state
-        combineResults: isCombineChecked, // <-- Pass the new state
+        pipeline: selectedPipeline,
+        scrapeOption,
+        customPrompt,
+        languageOption,
+        customLanguage,
+        combineResults: isCombineChecked,
       },
     });
   };
@@ -166,18 +128,16 @@ function App() {
   };
 
   const areTabsSelected = selectedTabs.length > 0;
-  const isScrapeSelected = selectedOps.includes('scrape');
-  const isTranslateSelected = selectedOps.includes('translate'); // <-- ADD
-  const isCustomPromptRequired = scrapeOption === 'custom';
-  const isCustomLanguageRequired = languageOption === 'custom'; // <-- ADD
+  const isScrapeSelected = selectedPipeline === 'scrape';
+  const isTranslateSelected =
+    selectedPipeline.includes('translate') || selectedPipeline.includes('lang');
 
   const isStartDisabled =
     selectedTabs.length === 0 ||
-    selectedOps.length === 0 ||
-    (isScrapeSelected && isCustomPromptRequired && !customPrompt.trim()) ||
+    (isScrapeSelected && scrapeOption === 'custom' && !customPrompt.trim()) ||
     (isTranslateSelected &&
-      isCustomLanguageRequired &&
-      !customLanguage.trim()) || // <-- ADD
+      languageOption === 'custom' &&
+      !customLanguage.trim()) ||
     isProcessing;
 
   if (view === 'settings') {
@@ -211,18 +171,14 @@ function App() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-base font-bold text-white">2. Choose Operations</h2>
-        <OperationSelector
-          selectedOps={selectedOps}
-          onOpSelect={handleOperationSelection}
+        <h2 className="text-base font-bold text-white">2. Choose an Action</h2>
+        <PipelineSelector
+          selectedPipeline={selectedPipeline}
+          onPipelineChange={setSelectedPipeline}
           isDisabled={!areTabsSelected}
-          isCombineChecked={isCombineChecked}
-          onCombineChange={setIsCombineChecked}
-          selectedTabCount={selectedTabs.length} // <-- Pass tab count
         />
       </div>
 
-      {/* --- CONDITIONALLY RENDER NEW COMPONENT --- */}
       {isScrapeSelected && !isProcessing && (
         <DataScrapeOptions
           selectedOption={scrapeOption}
@@ -231,8 +187,6 @@ function App() {
           onCustomPromptChange={setCustomPrompt}
         />
       )}
-
-      {/* --- CONDITIONALLY RENDER NEW COMPONENT --- */}
       {isTranslateSelected && !isProcessing && (
         <LanguageSelector
           selectedLanguage={languageOption}
@@ -241,7 +195,6 @@ function App() {
           onCustomLanguageChange={setCustomLanguage}
         />
       )}
-      {/* ------------------------------------------ */}
 
       <ResultsDisplay tasks={tasks} onClear={handleClearResults} />
 
