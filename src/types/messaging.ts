@@ -5,11 +5,15 @@ export type ScrapeOption =
   | 'tables'
   | 'custom';
 
+export type LanguageOption = 'Turkish' | 'Arabic' | 'English' | 'custom';
+
 export interface StartProcessingPayload {
   tabs: number[];
   operations: string[];
   scrapeOption: ScrapeOption;
   customPrompt?: string;
+  languageOption: LanguageOption; // <-- ADD
+  customLanguage?: string;      // <-- ADD
 }
 
 // A new, comprehensive Task type
@@ -24,6 +28,8 @@ export interface Task {
   // Add scrape-specific data to the task
   scrapeOption?: ScrapeOption;
   customPrompt?: string;
+  languageOption?: LanguageOption; // <-- ADD
+  customLanguage?: string;       // <-- ADD
 }
 
 export type Message =

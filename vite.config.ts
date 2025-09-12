@@ -1,12 +1,32 @@
 // vite.config.ts
-import { defineConfig } from 'vite';
+import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
+import analyze from 'rollup-plugin-analyzer';
 import { resolve } from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // Run `yarn build --stats` to generate the report
+    ...(process.env.ANALYZE === 'true'
+      ? [
+        visualizer({
+          open: true,
+          filename: 'dist/stats.html',
+          gzipSize: true,
+          brotliSize: true,
+        }) as PluginOption,
+        analyze({
+          summaryOnly: true,
+          limit: 20,
+        }) as PluginOption,
+      ]
+      : []),
+  ],
   // Add this build configuration
   build: {
     rollupOptions: {

@@ -3,10 +3,11 @@ import { Button } from './components/atoms/Button';
 import { TabSelectionList } from './features/TabSelectionList';
 import { OperationSelector } from './features/OperationSelector';
 import { DataScrapeOptions } from './features/DataScrapeOptions';
+import { LanguageSelector } from './features/LanguageSelector';
 import { sendMessageToServiceWorker } from './services/chromeService';
 import { Settings } from './features/Settings';
 import { ResultsDisplay } from './features/ResultsDisplay';
-import type { Task, Message, ScrapeOption } from './types/messaging';
+import type { Task, Message, ScrapeOption, LanguageOption } from './types/messaging';
 
 // A simple Gear Icon component
 function GearIcon() {
@@ -45,6 +46,11 @@ function App() {
   // --- NEW STATE FOR SCRAPE OPTIONS ---
   const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
   const [customPrompt, setCustomPrompt] = useState('');
+  // ------------------------------------
+  
+  // --- NEW STATE FOR LANGUAGE OPTIONS ---
+  const [languageOption, setLanguageOption] = useState<LanguageOption>('English');
+  const [customLanguage, setCustomLanguage] = useState('');
   // ------------------------------------
 
   useEffect(() => {
@@ -110,6 +116,8 @@ function App() {
         operations: selectedOps,
         scrapeOption, // Pass new state
         customPrompt, // Pass new state
+        languageOption, // Pass new state
+        customLanguage, // Pass new state
       },
     });
   };
@@ -121,11 +129,15 @@ function App() {
 
   const areTabsSelected = selectedTabs.length > 0;
   const isScrapeSelected = selectedOps.includes('scrape');
+  const isTranslateSelected = selectedOps.includes('translate'); // <-- ADD
   const isCustomPromptRequired = scrapeOption === 'custom';
+  const isCustomLanguageRequired = languageOption === 'custom'; // <-- ADD
+
   const isStartDisabled =
     selectedTabs.length === 0 ||
     selectedOps.length === 0 ||
     (isScrapeSelected && isCustomPromptRequired && !customPrompt.trim()) ||
+    (isTranslateSelected && isCustomLanguageRequired && !customLanguage.trim()) || // <-- ADD
     isProcessing;
 
   if (view === 'settings') {
@@ -174,6 +186,16 @@ function App() {
           onOptionChange={setScrapeOption}
           customPrompt={customPrompt}
           onCustomPromptChange={setCustomPrompt}
+        />
+      )}
+      
+      {/* --- CONDITIONALLY RENDER NEW COMPONENT --- */}
+      {isTranslateSelected && !isProcessing && (
+        <LanguageSelector
+          selectedLanguage={languageOption}
+          onLanguageChange={setLanguageOption}
+          customLanguage={customLanguage}
+          onCustomLanguageChange={setCustomLanguage}
         />
       )}
       {/* ------------------------------------------ */}

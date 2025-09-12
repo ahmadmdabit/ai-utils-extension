@@ -15,7 +15,7 @@ chrome.sidePanel
 chrome.runtime.onMessage.addListener(
   (message: Message, _sender, sendResponse) => {
     if (message.type === 'START_PROCESSING') {
-      const { tabs, operations, scrapeOption, customPrompt } = message.payload;
+      const { tabs, operations, scrapeOption, customPrompt, languageOption, customLanguage } = message.payload;
       taskQueue.length = 0; // Clear any previous queue
 
       chrome.tabs.query({}, (allTabs) => {
@@ -33,6 +33,8 @@ chrome.runtime.onMessage.addListener(
                 status: 'pending',
                 scrapeOption: operation === 'scrape' ? scrapeOption : undefined,
                 customPrompt: operation === 'scrape' ? customPrompt : undefined,
+                languageOption: operation === 'translate' ? languageOption : undefined,
+                customLanguage: operation === 'translate' ? customLanguage : undefined,
               };
               initialTasks.push(task);
               taskQueue.push(task);
@@ -139,9 +141,7 @@ async function processQueue() {
               contentForCustomResult && contentForCustomResult[0]
                 ? contentForCustomResult[0].result || ''
                 : '';
-            const prompt = `${task.customPrompt || ''}:
-
-${contentForCustom}`;
+            const prompt = `${task.customPrompt || ''}:\n\n${contentForCustom}`;
             apiResult = await processText('custom', prompt); // Use a generic operation name
             break;
           default: // headings, links, tables
@@ -161,7 +161,11 @@ ${contentForCustom}`;
           scriptResults && scriptResults[0]
             ? scriptResults[0].result || ''
             : '';
-        apiResult = await processText(task.operation, pageContent);
+        
+        // --- PASS LANGUAGE TO processText ---
+        const targetLanguage = task.languageOption === 'custom' ? task.customLanguage : task.languageOption;
+        apiResult = await processText(task.operation, pageContent, targetLanguage);
+        // ------------------------------------
       }
 
       chrome.runtime.sendMessage({

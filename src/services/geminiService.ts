@@ -4,12 +4,14 @@ import { GeminiApiError } from '../utils/errors';
 const API_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
-function getPromptForOperation(operation: string, text: string): string {
+function getPromptForOperation(operation: string, text: string, language?: string): string {
   switch (operation) {
     case 'summarize':
       return `Please provide a concise summary of the following text:\n\n${text}`;
     case 'translate':
-      return `Translate the following text to English:\n\n${text}`;
+      // Use the provided language, default to English
+      const targetLanguage = language || 'English';
+      return `Translate the following text to ${targetLanguage}:\n\n${text}`;
     case 'custom':
       // For custom prompts, the text is already the full prompt
       return text;
@@ -26,6 +28,7 @@ function getPromptForOperation(operation: string, text: string): string {
 export async function processText(
   operation: string,
   text: string,
+  language?: string,
 ): Promise<string> {
   const apiKey = await getApiKey();
   if (!apiKey) {
@@ -35,7 +38,8 @@ export async function processText(
     );
   }
 
-  const prompt = getPromptForOperation(operation, text);
+  // Pass the language to the prompt constructor
+  const prompt = getPromptForOperation(operation, text, language);
 
   const response = await fetch(`${API_URL}?key=${apiKey}`, {
     method: 'POST',
