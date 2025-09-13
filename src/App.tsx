@@ -7,7 +7,7 @@ import { LanguageSelector } from './features/LanguageSelector';
 import { sendMessageToServiceWorker } from './services/chromeService';
 import { Settings } from './features/Settings';
 import { ResultsDisplay } from './features/ResultsDisplay';
-import { ModelSelector } from './features/ModelSelector'; // <-- NEW
+import { ActionOptions } from './features/ActionOptions';
 import type {
   Task,
   Message,
@@ -46,20 +46,16 @@ type View = 'main' | 'settings';
 
 function App() {
   const [selectedTabs, setSelectedTabs] = useState<number[]>([]);
-  const [selectedPipeline, setSelectedPipeline] =
-    useState<PipelineOperation>('summarize');
-  const [selectedModel, setSelectedModel] = useState<GeminiModel>(
-    'gemini-2.5-flash-lite',
-  );
+  const [selectedPipeline, setSelectedPipeline] = useState<PipelineOperation>('summarize');
+  const [selectedModel, setSelectedModel] = useState<GeminiModel>('gemini-2.5-flash-lite');
   const [view, setView] = useState<View>('main');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
   const [customPrompt, setCustomPrompt] = useState('');
-  const [languageOption, setLanguageOption] =
-    useState<LanguageOption>('English');
+  const [languageOption, setLanguageOption] = useState<LanguageOption>('English');
   const [customLanguage, setCustomLanguage] = useState('');
-  const [isCombineChecked] = useState(false);
+  const [isCombineChecked, setIsCombineChecked] = useState(false);
 
   useEffect(() => {
     const handleMessage = (message: Message) => {
@@ -68,22 +64,26 @@ function App() {
           setTasks(message.payload.tasks);
           setIsProcessing(true);
           break;
-        case 'TASK_STARTED':
-          setTasks((prev) =>
-            prev.map((task) =>
-              task.taskId === message.payload.taskId
-                ? { ...task, status: 'processing' }
-                : task,
-            ),
-          );
-          break;
+        
+        // This case is now redundant because the final messages handle all states
+        // case 'TASK_STARTED': 
+        //   break;
+
         case 'TASK_COMPLETE':
         case 'TASK_ERROR':
-          setTasks((prev) =>
-            prev.map((task) =>
-              task.taskId === message.payload.taskId ? message.payload : task,
-            ),
-          );
+          // --- THIS IS THE FIX ---
+          // This simplified logic correctly handles all scenarios, including the final combined result.
+          setTasks(prevTasks => {
+            // If the incoming task is a final combined result, it should be the ONLY task displayed.
+            if (message.payload.isCombinedResult) {
+              return [message.payload];
+            }
+            // Otherwise, find and update the specific task in the list.
+            return prevTasks.map(task =>
+              task.taskId === message.payload.taskId ? message.payload : task
+            );
+          });
+          // -----------------------
           break;
       }
     };
@@ -97,6 +97,7 @@ function App() {
       setIsProcessing(false);
       return;
     }
+    // Processing is finished only when all displayed tasks are no longer in a pending/processing state.
     const isStillProcessing = tasks.some(
       (t) => t.status === 'pending' || t.status === 'processing',
     );
@@ -122,8 +123,8 @@ function App() {
         customPrompt,
         languageOption,
         customLanguage,
-        combineResults: isCombineChecked,
-        selectedModel, // <-- Pass the new state
+        combineResults: isCombineChecked && selectedTabs.length > 1,
+        selectedModel,
       },
     });
   };
@@ -139,7 +140,7 @@ function App() {
     selectedPipeline.includes('translate') || selectedPipeline.includes('lang');
 
   const isStartDisabled =
-    selectedTabs.length === 0 ||
+    !areTabsSelected ||
     (isScrapeSelected && scrapeOption === 'custom' && !customPrompt.trim()) ||
     (isTranslateSelected &&
       languageOption === 'custom' &&
@@ -185,16 +186,17 @@ function App() {
         />
       </div>
 
-      {/* --- ADD THE NEW MODEL SELECTOR --- */}
       <div className="space-y-2">
         <h2 className="text-base font-bold text-white">3. Configure</h2>
-        <ModelSelector
+        <ActionOptions
           selectedModel={selectedModel}
           onModelChange={setSelectedModel}
+          isCombineChecked={isCombineChecked}
+          onCombineChange={setIsCombineChecked}
           isDisabled={!areTabsSelected}
+          selectedTabCount={selectedTabs.length}
         />
       </div>
-      {/* ---------------------------------- */}
 
       {isScrapeSelected && !isProcessing && (
         <DataScrapeOptions

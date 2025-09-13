@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:lint": "yarn lint && yarn build",
+    "build:lint:test": "yarn lint && yarn build && yarn test:coverage",
     "build:stats": "cross-env ANALYZE=true vite build",
     "lint": "eslint . --fix",
     "test": "vitest",
