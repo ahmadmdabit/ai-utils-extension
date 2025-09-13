@@ -54,4 +54,5 @@ export type Message =
   | { type: 'ALL_TASKS_QUEUED'; payload: { tasks: Task[] } }
   | { type: 'TASK_STARTED'; payload: { taskId: string } }
   | { type: 'TASK_COMPLETE'; payload: Task }
-  | { type: 'TASK_ERROR'; payload: Task };
+  | { type: 'TASK_ERROR'; payload: Task }
+  | { type: 'CANCEL_PROCESSING' };

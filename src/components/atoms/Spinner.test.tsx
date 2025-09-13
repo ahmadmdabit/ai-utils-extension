@@ -19,7 +19,7 @@ describe('Spinner Component', () => {
       'animate-spin',
       'h-5',
       'w-5',
-      'text-violet-400',
+      'text-spotify-green',
     );
   });
 });

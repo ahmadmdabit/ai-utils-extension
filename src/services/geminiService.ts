@@ -70,6 +70,7 @@ export async function processText(
   text: string | string[],
   model: GeminiModel = 'gemini-2.5-flash-lite', // <-- ADD model parameter with default
   language?: string,
+  abortSignal?: AbortSignal,
 ): Promise<string> {
   const apiKey = await getApiKey();
   if (!apiKey) {
@@ -97,6 +98,7 @@ export async function processText(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    signal: abortSignal,
   });
 
   if (!response.ok) {

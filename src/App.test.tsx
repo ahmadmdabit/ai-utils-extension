@@ -169,7 +169,7 @@ describe('App component', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: 'Processing...' }),
+        screen.getByRole('button', { name: 'Cancel' }),
       ).toBeInTheDocument();
     });
   });

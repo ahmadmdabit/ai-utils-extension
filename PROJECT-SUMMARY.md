@@ -33,6 +33,9 @@ When the "Scrape Data" pipeline is selected, users can choose from several metho
 - **Language Selection:** A dedicated UI for selecting a target translation language, with presets and a custom input option.
 - **Secure API Key Management:** A settings page allows users to securely save their Gemini API key to `chrome.storage.local`.
 - **Combine Tabs Results:** A powerful option to synthesize the results from multiple selected tabs into a single, cohesive output. The system processes all selected tabs at each step of a pipeline before combining them, enabling complex, multi-stage analysis.
+- **Process Cancellation:** Users can cancel long-running processes with the Cancel button.
+- **Configurable Timeouts:** Users can set processing timeouts in the Settings panel to prevent indefinite processing.
+- **Tab Refresh:** Users can refresh the tab list with the reload button to see their latest open tabs.
 
 ---
 
@@ -54,6 +57,7 @@ The extension is built on a clean, decoupled architecture separating the user in
   4.  For each step, it processes all selected tabs (either in parallel for local operations or sequentially for API calls).
   5.  If "Combine Tabs" is enabled, it performs a final synthesis step after a pipeline step is complete for all tabs.
   6.  The output of each step is stored and used as the input for the next, enabling complex, dependent "Matrix" combinations.
+- **Cancellation & Timeout Support:** The service worker now supports process cancellation via AbortController and configurable timeouts.
 
 #### Communication Layer
 - A strongly-typed messaging system (defined in `src/types/messaging.ts`) is used for all communication between the sidepanel UI and the service worker.
@@ -62,10 +66,11 @@ The extension is built on a clean, decoupled architecture separating the user in
 
 ## 3. Key Technical Implementations
 
-- **`geminiService.ts`:** A dedicated, isolated service responsible for all communication with the Google Gemini API. It handles dynamic URL construction (based on the selected model), prompt generation (including synthesis and title generation), and API error handling.
+- **`geminiService.ts`:** A dedicated, isolated service responsible for all communication with the Google Gemini API. It handles dynamic URL construction (based on the selected model), prompt generation (including synthesis and title generation), and API error handling. Now supports cancellation via AbortSignal.
 - **`pipelines.ts`:** A declarative, data-driven definition of all available processing pipelines. This makes the workflow engine flexible and easy to extend.
 - **`scrapers.ts`:** A collection of self-contained, pure functions designed to be injected into web pages with `chrome.scripting.executeScript` for fast, deterministic DOM scraping.
 - **Conditional UI Components:** The UI is composed of several feature components (`PipelineSelector`, `ActionOptions`, `DataScrapeOptions`, `LanguageSelector`) that are conditionally rendered based on the application's state.
+- **Cancellation Support:** The UI now includes a Cancel button that sends a `CANCEL_PROCESSING` message to the service worker.
 
 ---
 
@@ -85,6 +90,7 @@ The project was built with a strong emphasis on quality, consistency, and mainta
 - **Frameworks:** **Vitest** is used as the test runner, with **React Testing Library** for component testing.
 - **Coverage:** The project maintains a high level of test coverage, ensuring all critical logic is validated.
 - **Mocking:** The `chrome` global API is mocked using a manual, type-safe mock defined in `src/setupTests.ts`. This was a key architectural decision that enables robust, isolated unit tests.
+- **Cancellation Testing:** Added tests for cancellation and timeout functionality in the service worker.
 
 ---
 
@@ -99,3 +105,7 @@ The project was built with a strong emphasis on quality, consistency, and mainta
     -   **Feature Expansion:** Added advanced scrape options, language selection, and model selection.
     -   **Architectural Refactor:** Evolved the backend from a simple queue to a "Vertical" pipeline processor, and finally to the "Matrix" workflow engine capable of combining both tabs and operations.
     -   **Quality Assurance:** Wrote a comprehensive suite of unit and component tests, achieving high code coverage and ensuring the application's stability.
+6.  **Phase 5: Robustness & Usability:**
+    -   **Cancellation Support:** Added process cancellation and timeout functionality.
+    -   **UI Improvements:** Added tab refresh capability and improved the settings panel.
+    -   **Enhanced Testing:** Added tests for cancellation and timeout scenarios.

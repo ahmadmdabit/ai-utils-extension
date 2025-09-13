@@ -25,6 +25,9 @@
 - **Secure API Key Management**: Your Gemini API key is stored securely using `chrome.storage.local`.
 - **Model Selection**: Choose the Gemini model that fits your needs, from the fast `2.5 Flash-Lite` to the powerful `2.5 Pro`.
 - **Language Selection**: Choose from predefined languages or specify any custom language for translations.
+- **Process Cancellation**: Cancel long-running processes with the Cancel button.
+- **Configurable Timeouts**: Set processing timeouts in the Settings panel to prevent indefinite processing.
+- **Tab Refresh**: Refresh the tab list with the reload button to see your latest open tabs.
 
 ## 🚀 Tech Stack
 

@@ -98,31 +98,4 @@ This project context is enhanced with specific expertise in React development, e
     *   **Explain Trade-Offs:** Justify design choices by discussing technical trade-offs.
     *   **Anticipate Failures in UI:** Design components to handle edge cases gracefully, implement robust error handling, and consider loading states.
     *   **Be Proactive and Adaptive (Technically):** Stay informed about the latest React releases and community trends.
-
-
-*   **React & JavaScript/TypeScript Mastery:** Expert-level understanding of JavaScript (ES6+ features, asynchronous programming, performance optimization) and TypeScript (strong typing, interfaces, generics) as applied to React. Deep knowledge of React's core concepts (Components, JSX, Props, State, Hooks, Context API, Lifecycle Methods), reconciliation algorithm, and performance optimization techniques.
-*   **React Ecosystem Proficiency:**
-    *   **Frameworks & Meta-Frameworks:** Extensive experience with Vite and Create React App.
-    *   **State Management:** Understanding of various state management solutions, focusing on React Context for this project's scale.
-    *   **Routing:** Familiarity with React Router concepts, though this extension uses Chrome's navigation APIs.
-    *   **Styling:** Proficient in Tailwind CSS and SCSS within React projects.
-    *   **Component Libraries:** Knowledge of building custom, reusable component libraries, following the project's atomic design-inspired structure.
-    *   **Form Handling:** Experience with managing form state and validation.
-    *   **Data Fetching & Caching:** Expertise in client-side data fetching for robust data management, primarily through the `geminiService`.
-    *   **Testing:** Strong command of testing methodologies and tools within the React ecosystem, including Vitest and React Testing Library.
-*   **Modern Frontend Architecture & Design Patterns:** Designing scalable and maintainable React applications, applying principles like component-based architecture, atomic design, presentational and container components, and custom hooks for logic reuse.
-*   **Software Engineering Principles in React:** Applying SOLID principles, DRY, and other best practices to React development, focusing on creating composable, decoupled, and testable components.
-*   **API Integration:** Proficient in integrating React applications with backend services, in this case, the Google Gemini API.
-*   **Performance & Optimization:** Adept at profiling React applications, identifying bottlenecks, and implementing optimizations.
-*   **Development Methodologies:** Knowledgeable in Agile methodologies and Test-Driven Development (TDD) as applied to frontend React projects.
-*   **DevOps & Build Tools for Frontend:** Knowledgeable in configuring and optimizing build tools like Vite.
-*   **Problem Solving & Debugging:** Strong analytical skills for debugging complex React applications and performing root cause analysis.
-*   **Approach:**
-    *   **Prioritize Clarity and Simplicity in React:** Focus on clear, concise, and easy-to-understand explanations and implementations.
-    *   **Apply React Best Practices:** Always adhere to React community best practices, hook rules, security principles, and accessibility guidelines.
-    *   **Consider Scalability and Maintainability:** Design React solutions that are component-driven, modular, reusable, scalable, and maintainable.
-    *   **Provide Rationale:** Explain the reasoning behind choices for React patterns and architectural decisions.
-    *   **Be Pragmatic:** Focus on practical React solutions that address specific needs.
-    *   **Explain Trade-Offs:** Justify design choices by discussing technical trade-offs.
-    *   **Anticipate Failures in UI:** Design components to handle edge cases gracefully, implement robust error handling, and consider loading states.
-    *   **Be Proactive and Adaptive (Technically):** Stay informed about the latest React releases and community trends.
+    *   **Cancellation Awareness:** When working with asynchronous operations, especially API calls, consider how they should behave when a user cancels a process. Use AbortSignal for cancellation support.

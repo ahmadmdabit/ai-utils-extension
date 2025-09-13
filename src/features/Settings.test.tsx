@@ -8,63 +8,78 @@ vi.mock('../services/chromeService');
 describe('Settings component', () => {
   const getApiKeyMock = vi.spyOn(chromeService, 'getApiKey');
   const setApiKeyMock = vi.spyOn(chromeService, 'setApiKey');
+  const getTimeoutSettingMock = vi.spyOn(chromeService, 'getTimeoutSetting');
+  const setTimeoutSettingMock = vi.spyOn(chromeService, 'setTimeoutSetting');
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock console for the timer warning
+    getApiKeyMock.mockResolvedValue('existing-key');
+    getTimeoutSettingMock.mockResolvedValue(90);
+    setApiKeyMock.mockResolvedValue(undefined);
+    setTimeoutSettingMock.mockResolvedValue(undefined);
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('renders the settings form correctly', async () => {
-    getApiKeyMock.mockResolvedValue('');
     render(<Settings onClose={() => {}} />);
     expect(await screen.findByText('Settings')).toBeInTheDocument();
     expect(await screen.findByLabelText('Gemini API Key')).toBeInTheDocument();
+    expect(
+      await screen.findByLabelText('Processing Timeout (seconds)'),
+    ).toBeInTheDocument();
   });
 
-  it('fetches and displays the existing API key on mount', async () => {
-    getApiKeyMock.mockResolvedValue('existing-key');
+  it('fetches and displays existing settings on mount', async () => {
     render(<Settings onClose={() => {}} />);
     expect(await screen.findByDisplayValue('existing-key')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('90')).toBeInTheDocument();
   });
 
-  it('updates the input value as the user types', async () => {
-    getApiKeyMock.mockResolvedValue('');
+  it('updates input values as the user types', async () => {
     render(<Settings onClose={() => {}} />);
-    const input = await screen.findByLabelText('Gemini API Key');
-    fireEvent.change(input, { target: { value: 'new-api-key' } });
-    expect(input).toHaveValue('new-api-key');
+    const apiKeyInput = await screen.findByLabelText('Gemini API Key');
+    const timeoutInput = await screen.findByLabelText(
+      'Processing Timeout (seconds)',
+    );
+
+    fireEvent.change(apiKeyInput, { target: { value: 'new-api-key' } });
+    fireEvent.change(timeoutInput, { target: { value: '120' } });
+
+    expect(apiKeyInput).toHaveValue('new-api-key');
+    expect(timeoutInput).toHaveValue(120);
   });
 
-  it('calls setApiKey and shows a status message on save', async () => {
-    getApiKeyMock.mockResolvedValue('');
-    setApiKeyMock.mockResolvedValue(undefined);
+  it('calls save functions and shows a status message on save', async () => {
     render(<Settings onClose={() => {}} />);
 
-    const input = await screen.findByLabelText('Gemini API Key');
-    fireEvent.change(input, { target: { value: 'saved-key' } });
+    const apiKeyInput = await screen.findByLabelText('Gemini API Key');
+    fireEvent.change(apiKeyInput, { target: { value: 'saved-key' } });
 
-    const saveButton = screen.getByRole('button', { name: 'Save Key' });
+    const timeoutInput = await screen.findByLabelText(
+      'Processing Timeout (seconds)',
+    );
+    fireEvent.change(timeoutInput, { target: { value: '60' } });
+
+    const saveButton = screen.getByRole('button', { name: 'Save Settings' });
     fireEvent.click(saveButton);
 
     await waitFor(() => {
       expect(setApiKeyMock).toHaveBeenCalledWith('saved-key');
+      expect(setTimeoutSettingMock).toHaveBeenCalledWith(60);
     });
 
-    const statusMessage = await screen.findByText('API Key saved!');
+    const statusMessage = await screen.findByText('Settings saved!');
     expect(statusMessage).toBeInTheDocument();
 
-    // Since we are not using fake timers, we just wait for the message to disappear
     await waitFor(
       () => {
-        expect(screen.queryByText('API Key saved!')).not.toBeInTheDocument();
+        expect(screen.queryByText('Settings saved!')).not.toBeInTheDocument();
       },
       { timeout: 3000 },
-    ); // Wait longer than the 2s timeout in the component
+    );
   });
 
   it('calls the onClose prop when the "Back" button is clicked', async () => {
-    getApiKeyMock.mockResolvedValue('');
     const handleClose = vi.fn();
     render(<Settings onClose={handleClose} />);
     const backButton = await screen.findByRole('button', { name: 'Back' });

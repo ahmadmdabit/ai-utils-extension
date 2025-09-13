@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../components/atoms/Button';
-import { getApiKey, setApiKey } from '../services/chromeService';
+import {
+  getApiKey,
+  setApiKey,
+  getTimeoutSetting,
+  setTimeoutSetting,
+} from '../services/chromeService';
 
 export interface SettingsProps {
   onClose: () => void;
@@ -8,17 +13,20 @@ export interface SettingsProps {
 
 export function Settings({ onClose }: SettingsProps) {
   const [apiKey, setApiKeyInput] = useState('');
+  const [timeout, setTimeoutInput] = useState(90);
   const [status, setStatus] = useState('');
 
   useEffect(() => {
     getApiKey().then((key) => {
       if (key) setApiKeyInput(key);
     });
+    getTimeoutSetting().then((val) => setTimeoutInput(val));
   }, []);
 
   const handleSave = async () => {
     await setApiKey(apiKey);
-    setStatus('API Key saved!');
+    await setTimeoutSetting(timeout);
+    setStatus('Settings saved!');
     setTimeout(() => setStatus(''), 2000);
   };
 
@@ -27,7 +35,7 @@ export function Settings({ onClose }: SettingsProps) {
       <div>
         <h1 className="text-xl font-bold text-white">Settings</h1>
         <p className="text-sm text-spotify-light-gray">
-          Manage your Gemini API Key.
+          Manage your Gemini API Key and other settings.
         </p>
       </div>
 
@@ -43,8 +51,23 @@ export function Settings({ onClose }: SettingsProps) {
           className="w-full p-3 rounded-md bg-spotify-gray border border-gray-700 focus:ring-spotify-green focus:border-spotify-green"
           placeholder="Enter your API key"
         />
-        {status && <p className="text-sm text-spotify-green mt-2">{status}</p>}
       </div>
+
+      <div className="space-y-2">
+        <label htmlFor="timeout" className="text-base font-semibold text-white">
+          Processing Timeout (seconds)
+        </label>
+        <input
+          id="timeout"
+          type="number"
+          value={timeout}
+          onChange={(e) => setTimeoutInput(parseInt(e.target.value, 10) || 0)}
+          className="w-full p-3 rounded-md bg-spotify-gray border border-gray-700 focus:ring-spotify-green focus:border-spotify-green"
+          placeholder="e.g., 90"
+        />
+      </div>
+
+      {status && <p className="text-sm text-spotify-green mt-2">{status}</p>}
 
       <div className="flex-grow"></div>
 
@@ -52,7 +75,7 @@ export function Settings({ onClose }: SettingsProps) {
         <Button onClick={onClose} variant="secondary">
           Back
         </Button>
-        <Button onClick={handleSave}>Save Key</Button>
+        <Button onClick={handleSave}>Save Settings</Button>
       </div>
     </div>
   );

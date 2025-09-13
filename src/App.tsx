@@ -46,14 +46,18 @@ type View = 'main' | 'settings';
 
 function App() {
   const [selectedTabs, setSelectedTabs] = useState<number[]>([]);
-  const [selectedPipeline, setSelectedPipeline] = useState<PipelineOperation>('summarize');
-  const [selectedModel, setSelectedModel] = useState<GeminiModel>('gemini-2.5-flash-lite');
+  const [selectedPipeline, setSelectedPipeline] =
+    useState<PipelineOperation>('summarize');
+  const [selectedModel, setSelectedModel] = useState<GeminiModel>(
+    'gemini-2.5-flash-lite',
+  );
   const [view, setView] = useState<View>('main');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
   const [customPrompt, setCustomPrompt] = useState('');
-  const [languageOption, setLanguageOption] = useState<LanguageOption>('English');
+  const [languageOption, setLanguageOption] =
+    useState<LanguageOption>('English');
   const [customLanguage, setCustomLanguage] = useState('');
   const [isCombineChecked, setIsCombineChecked] = useState(false);
 
@@ -64,23 +68,23 @@ function App() {
           setTasks(message.payload.tasks);
           setIsProcessing(true);
           break;
-        
+
         // This case is now redundant because the final messages handle all states
-        // case 'TASK_STARTED': 
+        // case 'TASK_STARTED':
         //   break;
 
         case 'TASK_COMPLETE':
         case 'TASK_ERROR':
           // --- THIS IS THE FIX ---
           // This simplified logic correctly handles all scenarios, including the final combined result.
-          setTasks(prevTasks => {
+          setTasks((prevTasks) => {
             // If the incoming task is a final combined result, it should be the ONLY task displayed.
             if (message.payload.isCombinedResult) {
               return [message.payload];
             }
             // Otherwise, find and update the specific task in the list.
-            return prevTasks.map(task =>
-              task.taskId === message.payload.taskId ? message.payload : task
+            return prevTasks.map((task) =>
+              task.taskId === message.payload.taskId ? message.payload : task,
             );
           });
           // -----------------------
@@ -134,6 +138,20 @@ function App() {
     setIsProcessing(false);
   };
 
+  const handleCancel = () => {
+    console.log('Sending CANCEL_PROCESSING message...');
+    sendMessageToServiceWorker({ type: 'CANCEL_PROCESSING' });
+    // Immediately provide feedback to the user
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.status === 'pending' || t.status === 'processing'
+          ? { ...t, status: 'error', error: 'Cancelled by user.' }
+          : t,
+      ),
+    );
+    setIsProcessing(false);
+  };
+
   const areTabsSelected = selectedTabs.length > 0;
   const isScrapeSelected = selectedPipeline === 'scrape';
   const isTranslateSelected =
@@ -168,9 +186,6 @@ function App() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-base font-bold text-white">
-          1. Choose Tabs (Max 3)
-        </h2>
         <TabSelectionList
           selectedTabs={selectedTabs}
           onTabSelect={handleTabSelection}
@@ -219,9 +234,15 @@ function App() {
 
       <div className="flex-grow"></div>
 
-      <Button onClick={handleStart} disabled={isStartDisabled}>
-        {isProcessing ? 'Processing...' : 'Start Processing'}
-      </Button>
+      {isProcessing ? (
+        <Button onClick={handleCancel} variant="secondary">
+          Cancel
+        </Button>
+      ) : (
+        <Button onClick={handleStart} disabled={isStartDisabled}>
+          Start Processing
+        </Button>
+      )}
     </div>
   );
 }

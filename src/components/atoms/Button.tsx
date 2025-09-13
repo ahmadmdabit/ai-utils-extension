@@ -15,8 +15,8 @@ export function Button({
 
   const themeClasses = {
     primary:
-      'bg-spotify-green hover:bg-spotify-green-light text-black disabled:bg-gray-600 disabled:text-spotify-light-gray disabled:hover:scale-100 disabled:cursor-not-allowed',
-    secondary: 'bg-spotify-gray hover:bg-gray-700 text-white',
+      'bg-spotify-green hover:bg-spotify-green-light text-black disabled:bg-spotify-gray disabled:text-spotify-light-gray disabled:hover:scale-100 disabled:cursor-not-allowed',
+    secondary: 'bg-spotify-gray hover:bg-spotify-gray/80 text-white',
   };
 
   return (

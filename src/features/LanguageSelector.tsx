@@ -50,7 +50,7 @@ export function LanguageSelector({
           value={customLanguage}
           onChange={(e) => onCustomLanguageChange(e.target.value)}
           placeholder="e.g., Spanish, French, Japanese"
-          className="mt-2 w-full p-2 rounded-md bg-spotify-black border border-gray-700 focus:ring-spotify-green focus:border-spotify-green text-sm"
+          className="mt-2 w-full p-2 rounded-md bg-spotify-black border border-spotify-gray focus:ring-spotify-green focus:border-spotify-green text-sm"
         />
       )}
     </div>

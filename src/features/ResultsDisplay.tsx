@@ -32,7 +32,7 @@ export function ResultsDisplay({ tasks, onClear }: ResultsDisplayProps) {
         {tasks.map((task) => (
           <div
             key={task.taskId}
-            className="p-2 border-b border-gray-700 pb-2 last:border-b-0"
+            className="p-2 border-b border-spotify-gray pb-2 last:border-b-0"
           >
             <div className="flex justify-between items-center">
               <div className="w-full">

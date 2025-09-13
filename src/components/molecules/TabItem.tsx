@@ -9,7 +9,7 @@ export interface TabItemProps {
 
 export function TabItem({ tab, isSelected, onSelect }: TabItemProps) {
   return (
-    <div className="flex items-center p-3 rounded-lg bg-spotify-gray hover:bg-gray-700 transition-colors">
+    <div className="flex items-center p-3 rounded-lg bg-spotify-gray hover:bg-spotify-gray/80 transition-colors">
       <img
         src={tab.favIconUrl || 'icons/icon512.png'}
         alt="favicon"
