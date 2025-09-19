@@ -8,7 +8,7 @@
 export function removeDuplicatePhrases(text: string): string {
   // This regex captures a multi-word phrase (defined by non-whitespace characters \S+)
   // and then uses a backreference (\1) to find an immediate, consecutive duplicate.
-  const regex = /\b(\S+(?:\s+\S+)+)\s+\1\b/gi;
+  const regex = /\b(\S+)(?:\s+\1)+\b/gi;
 
   let cleanedText = text;
   let previousText;

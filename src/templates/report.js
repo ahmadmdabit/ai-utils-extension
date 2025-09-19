@@ -23,7 +23,7 @@ function renderFilteredJobs(jobsList) {
         ? `<p class="insights">${job.insights}</p>`
         : '';
 
-      return `<div class="job-card">${imageHtml}<div class="job-details"><a href="${link}" target="_blank" class="job-title">${job.title}</a><p class="job-company">${job.company}</p><p class="job-location">${job.location}</p><div>${statusBadges}</div>${connectionsHtml}${insightsHtml}</div></div>`;
+      return `<div class="job-card">${imageHtml}<div class="job-details"><a href="${link}" target="_blank" class="job-title">${job.title}</a><p class="job-company">${job.company}</p><p class="job-location">${job.location}</p>${connectionsHtml}${insightsHtml}</div><div class="job-status-wrapper">${statusBadges}</div></div>`;
     })
     .join('');
 

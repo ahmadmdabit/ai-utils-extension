@@ -23,7 +23,11 @@ export function setIsProcessing(value: boolean) {
 async function getContent(tabId: number): Promise<string> {
   // For LinkedIn, we need the full HTML, not just innerText
   const tab = await chrome.tabs.get(tabId);
-  if (tab.url && tab.url.includes('linkedin.com/jobs/search')) {
+  if (
+    tab.url &&
+    (tab.url.includes('linkedin.com/jobs/search') ||
+      tab.url.includes('linkedin.com/jobs/collections'))
+  ) {
     console.log(`[DEBUG] Getting full HTML for LinkedIn tab ${tabId}`);
     const results = await chrome.scripting.executeScript({
       target: { tabId },

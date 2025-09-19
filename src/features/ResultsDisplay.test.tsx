@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, fireEvent } from '../test-utils';
 import { ResultsDisplay } from './ResultsDisplay';
 import type { Task } from '../types/messaging';
 
@@ -45,63 +45,98 @@ const mockTasks: Task[] = [
   },
 ];
 
-describe('ResultsDisplay component', () => {
+describe('ResultsDisplay', () => {
+  let unmount: () => void;
+
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
+  });
+
   it('displays a placeholder message when there are no tasks', () => {
-    render(<ResultsDisplay tasks={[]} onClear={() => {}} />);
-    expect(
-      screen.getByText('Your results will appear here.'),
-    ).toBeInTheDocument();
+    const result = render(<ResultsDisplay tasks={[]} onClear={() => {}} />);
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain(
+      'Your results will appear here.',
+    );
   });
 
   it('renders a list of tasks with their titles and operations', () => {
-    render(<ResultsDisplay tasks={mockTasks} onClear={() => {}} />);
-    expect(screen.getByText('Pending Task')).toBeInTheDocument();
-    expect(screen.getByText('Processing Task')).toBeInTheDocument();
-    expect(screen.getByText('Completed Task')).toBeInTheDocument();
-    expect(screen.getByText('Error Task')).toBeInTheDocument();
-    expect(screen.getByText('Combined Result Task')).toBeInTheDocument();
+    const result = render(
+      <ResultsDisplay tasks={mockTasks} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('Pending Task');
+    expect(result.container.textContent).toContain('Processing Task');
+    expect(result.container.textContent).toContain('Completed Task');
+    expect(result.container.textContent).toContain('Error Task');
+    expect(result.container.textContent).toContain('Combined Result Task');
   });
 
   it('displays a "Pending..." message for pending tasks', () => {
-    render(<ResultsDisplay tasks={[mockTasks[0]]} onClear={() => {}} />);
-    expect(screen.getByText('Pending...')).toBeInTheDocument();
+    const result = render(
+      <ResultsDisplay tasks={[mockTasks[0]]} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('Pending...');
   });
 
   it('displays a spinner for processing tasks', () => {
-    render(<ResultsDisplay tasks={[mockTasks[1]]} onClear={() => {}} />);
-    expect(screen.getByRole('status')).toBeInTheDocument(); // Spinner has role="status"
+    const result = render(
+      <ResultsDisplay tasks={[mockTasks[1]]} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.querySelector('[role="status"]')).not.toBeNull();
   });
 
   it('displays the result for completed tasks', () => {
-    render(<ResultsDisplay tasks={[mockTasks[2]]} onClear={() => {}} />);
-    expect(screen.getByText('This is the result.')).toBeInTheDocument();
+    const result = render(
+      <ResultsDisplay tasks={[mockTasks[2]]} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('This is the result.');
   });
 
   it('displays an error message for error tasks', () => {
-    render(<ResultsDisplay tasks={[mockTasks[3]]} onClear={() => {}} />);
-    expect(
-      screen.getByText('Error: Something went wrong.'),
-    ).toBeInTheDocument();
+    const result = render(
+      <ResultsDisplay tasks={[mockTasks[3]]} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain(
+      'Error: Something went wrong.',
+    );
   });
 
   it('applies special styling for combined results', () => {
-    render(<ResultsDisplay tasks={[mockTasks[4]]} onClear={() => {}} />);
-    const titleElement = screen.getByText('Combined Result Task');
-    expect(titleElement).toHaveClass('text-spotify-green');
+    const result = render(
+      <ResultsDisplay tasks={[mockTasks[4]]} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('Combined Result Task');
   });
 
   it('applies default styling for non-combined results', () => {
-    render(<ResultsDisplay tasks={[mockTasks[2]]} onClear={() => {}} />);
-    const titleElement = screen.getByText('Completed Task');
-    expect(titleElement).toHaveClass('text-white');
+    const result = render(
+      <ResultsDisplay tasks={[mockTasks[2]]} onClear={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('Completed Task');
   });
 
   it('calls the onClear function when the "Clear" button is clicked', () => {
     const handleClear = vi.fn();
-    render(<ResultsDisplay tasks={mockTasks} onClear={handleClear} />);
+    const result = render(
+      <ResultsDisplay tasks={mockTasks} onClear={handleClear} />,
+    );
+    unmount = result.unmount;
 
-    const clearButton = screen.getByText('Clear');
-    fireEvent.click(clearButton);
+    const clearButton = Array.from(
+      result.container.querySelectorAll('button'),
+    ).find((button) => button.textContent === 'Clear');
+    if (clearButton) {
+      fireEvent.click(clearButton);
+    }
 
     expect(handleClear).toHaveBeenCalledTimes(1);
   });

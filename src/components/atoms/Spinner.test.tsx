@@ -1,25 +1,31 @@
-// src/components/atoms/Spinner.test.tsx
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
+import { render } from '../../test-utils';
 import { Spinner } from './Spinner';
 
-describe('Spinner Component', () => {
-  it('should render the spinner element', () => {
-    render(<Spinner />);
+describe('Spinner', () => {
+  let unmount: () => void;
 
-    const spinnerElement = screen.getByTestId('spinner');
-    expect(spinnerElement).toBeInTheDocument();
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
   });
 
-  it('should have the correct CSS classes', () => {
-    render(<Spinner />);
+  it('renders the spinner element', () => {
+    const result = render(<Spinner />);
+    unmount = result.unmount;
+    const spinner = result.container.querySelector('[data-testid="spinner"]');
+    expect(spinner).not.toBeNull();
+  });
 
-    const spinnerElement = screen.getByTestId('spinner');
-    expect(spinnerElement).toHaveClass(
-      'animate-spin',
-      'h-5',
-      'w-5',
-      'text-spotify-green',
-    );
+  it('has the correct CSS classes', () => {
+    const result = render(<Spinner />);
+    unmount = result.unmount;
+    const spinner = result.container.querySelector('[data-testid="spinner"]');
+    expect(spinner).not.toBeNull();
+    const classes = ['animate-spin', 'h-5', 'w-5', 'text-spotify-green'];
+    classes.forEach((cls) => {
+      expect(spinner?.classList.contains(cls)).toBe(true);
+    });
   });
 });

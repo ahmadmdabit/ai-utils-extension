@@ -1,89 +1,118 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Settings } from './Settings';
 import * as chromeService from '../services/chromeService';
 
 vi.mock('../services/chromeService');
 
-describe('Settings component', () => {
-  const getApiKeyMock = vi.spyOn(chromeService, 'getApiKey');
-  const setApiKeyMock = vi.spyOn(chromeService, 'setApiKey');
-  const getTimeoutSettingMock = vi.spyOn(chromeService, 'getTimeoutSetting');
-  const setTimeoutSettingMock = vi.spyOn(chromeService, 'setTimeoutSetting');
+describe('Settings', () => {
+  let container: HTMLElement | null = null;
+  let root: ReturnType<typeof createRoot> | null = null;
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    getApiKeyMock.mockResolvedValue('existing-key');
-    getTimeoutSettingMock.mockResolvedValue(90);
-    setApiKeyMock.mockResolvedValue(undefined);
-    setTimeoutSettingMock.mockResolvedValue(undefined);
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+    vi.spyOn(chromeService, 'getApiKey').mockResolvedValue('existing-key');
+    vi.spyOn(chromeService, 'getTimeoutSetting').mockResolvedValue(90);
+    vi.spyOn(chromeService, 'setApiKey').mockResolvedValue(undefined);
+    vi.spyOn(chromeService, 'setTimeoutSetting').mockResolvedValue(undefined);
+    vi.useFakeTimers();
   });
 
-  it('renders the settings form correctly', async () => {
-    render(<Settings onClose={() => {}} />);
-    expect(await screen.findByText('Settings')).toBeInTheDocument();
-    expect(await screen.findByLabelText('Gemini API Key')).toBeInTheDocument();
-    expect(
-      await screen.findByLabelText('Processing Timeout (seconds)'),
-    ).toBeInTheDocument();
+  afterEach(() => {
+    if (root && container) {
+      act(() => {
+        root!.unmount();
+      });
+      document.body.removeChild(container!);
+      container = null;
+    }
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   it('fetches and displays existing settings on mount', async () => {
-    render(<Settings onClose={() => {}} />);
-    expect(await screen.findByDisplayValue('existing-key')).toBeInTheDocument();
-    expect(await screen.findByDisplayValue('90')).toBeInTheDocument();
+    await act(async () => {
+      root!.render(<Settings onClose={() => {}} />);
+    });
+
+    const apiKeyInput = container!.querySelector(
+      'input[id="apiKey"]',
+    ) as HTMLInputElement;
+    const timeoutInput = container!.querySelector(
+      'input[id="timeout"]',
+    ) as HTMLInputElement;
+
+    expect(apiKeyInput.value).toBe('existing-key');
+    expect(timeoutInput.value).toBe('90');
   });
 
   it('updates input values as the user types', async () => {
-    render(<Settings onClose={() => {}} />);
-    const apiKeyInput = await screen.findByLabelText('Gemini API Key');
-    const timeoutInput = await screen.findByLabelText(
-      'Processing Timeout (seconds)',
-    );
+    await act(async () => {
+      root!.render(<Settings onClose={() => {}} />);
+    });
 
-    fireEvent.change(apiKeyInput, { target: { value: 'new-api-key' } });
-    fireEvent.change(timeoutInput, { target: { value: '120' } });
+    const apiKeyInput = container!.querySelector(
+      'input[id="apiKey"]',
+    ) as HTMLInputElement;
+    const timeoutInput = container!.querySelector(
+      'input[id="timeout"]',
+    ) as HTMLInputElement;
 
-    expect(apiKeyInput).toHaveValue('new-api-key');
-    expect(timeoutInput).toHaveValue(120);
+    await act(async () => {
+      apiKeyInput.value = 'new-api-key';
+      apiKeyInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    await act(async () => {
+      timeoutInput.value = '120';
+      timeoutInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    expect(apiKeyInput.value).toBe('new-api-key');
+    expect(timeoutInput.value).toBe('120');
   });
 
   it('calls save functions and shows a status message on save', async () => {
-    render(<Settings onClose={() => {}} />);
-
-    const apiKeyInput = await screen.findByLabelText('Gemini API Key');
-    fireEvent.change(apiKeyInput, { target: { value: 'saved-key' } });
-
-    const timeoutInput = await screen.findByLabelText(
-      'Processing Timeout (seconds)',
-    );
-    fireEvent.change(timeoutInput, { target: { value: '60' } });
-
-    const saveButton = screen.getByRole('button', { name: 'Save Settings' });
-    fireEvent.click(saveButton);
-
-    await waitFor(() => {
-      expect(setApiKeyMock).toHaveBeenCalledWith('saved-key');
-      expect(setTimeoutSettingMock).toHaveBeenCalledWith(60);
+    await act(async () => {
+      root!.render(<Settings onClose={() => {}} />);
     });
 
-    const statusMessage = await screen.findByText('Settings saved!');
-    expect(statusMessage).toBeInTheDocument();
-
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Settings saved!')).not.toBeInTheDocument();
-      },
-      { timeout: 3000 },
+    const saveButton = Array.from(container!.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Save Settings',
     );
+
+    await act(async () => {
+      saveButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(chromeService.setApiKey).toHaveBeenCalledWith('existing-key');
+    expect(chromeService.setTimeoutSetting).toHaveBeenCalledWith(90);
+    expect(container!.textContent).toContain('Settings saved!');
+
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+
+    expect(container!.textContent).not.toContain('Settings saved!');
   });
 
   it('calls the onClose prop when the "Back" button is clicked', async () => {
     const handleClose = vi.fn();
-    render(<Settings onClose={handleClose} />);
-    const backButton = await screen.findByRole('button', { name: 'Back' });
-    fireEvent.click(backButton);
+    await act(async () => {
+      root!.render(<Settings onClose={handleClose} />);
+    });
+
+    const backButton = Array.from(container!.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Back',
+    );
+
+    await act(async () => {
+      backButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 });

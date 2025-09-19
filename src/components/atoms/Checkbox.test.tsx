@@ -1,18 +1,28 @@
-// src/components/atoms/Checkbox.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, fireEvent } from '../../test-utils';
 import { Checkbox } from './Checkbox';
 
-describe('Checkbox Component', () => {
-  it('should render the checkbox with its label', () => {
-    render(<Checkbox id="test-checkbox" label="Test Checkbox" />);
+describe('Checkbox', () => {
+  let unmount: () => void;
 
-    const checkboxElement = screen.getByLabelText(/Test Checkbox/i);
-    expect(checkboxElement).toBeInTheDocument();
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
   });
 
-  it('should be checked when the checked prop is true', () => {
-    render(
+  it('renders the checkbox with its label', () => {
+    const result = render(
+      <Checkbox id="test-checkbox" label="Test Checkbox" />,
+    );
+    unmount = result.unmount;
+    const checkbox = result.container.querySelector('input[type="checkbox"]');
+    expect(checkbox).not.toBeNull();
+    expect(result.container.textContent).toContain('Test Checkbox');
+  });
+
+  it('is checked when the checked prop is true', () => {
+    const result = render(
       <Checkbox
         id="test-checkbox"
         label="Test Checkbox"
@@ -20,24 +30,27 @@ describe('Checkbox Component', () => {
         onChange={() => {}}
       />,
     );
-
-    const checkboxElement = screen.getByRole('checkbox');
-    expect(checkboxElement).toBeChecked();
+    unmount = result.unmount;
+    const checkbox = result.container.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    expect(checkbox.checked).toBe(true);
   });
 
-  it('should call onChange when clicked', () => {
+  it('calls onChange when clicked', () => {
     const handleChange = vi.fn();
-    render(
+    const result = render(
       <Checkbox
         id="test-checkbox"
         label="Test Checkbox"
         onChange={handleChange}
       />,
     );
-
-    const checkboxElement = screen.getByRole('checkbox');
-    fireEvent.click(checkboxElement);
-
-    expect(handleChange).toHaveBeenCalled();
+    unmount = result.unmount;
+    const checkbox = result.container.querySelector('input[type="checkbox"]');
+    if (checkbox) {
+      fireEvent.click(checkbox);
+    }
+    expect(handleChange).toHaveBeenCalledTimes(1);
   });
 });

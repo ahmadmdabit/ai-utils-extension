@@ -1,27 +1,55 @@
-// src/components/atoms/Button.test.tsx
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, fireEvent } from '../../test-utils';
 import { Button } from './Button';
 
-describe('Button Component', () => {
-  it('should render the button with its children', () => {
-    render(<Button>Click Me</Button>);
-    
-    const buttonElement = screen.getByText(/Click Me/i);
-    expect(buttonElement).toBeInTheDocument();
+describe('Button', () => {
+  let unmount: () => void;
+
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
   });
 
-  it('should apply the primary variant styles by default', () => {
-    render(<Button>Primary Button</Button>);
-    
-    const buttonElement = screen.getByRole('button');
-    expect(buttonElement).toHaveClass('bg-spotify-green');
+  it('renders with children', () => {
+    const result = render(<Button>Click Me</Button>);
+    unmount = result.unmount;
+    const button = result.container.querySelector('button');
+    expect(button).not.toBeNull();
+    expect(button?.textContent).toBe('Click Me');
   });
 
-  it('should be disabled when the disabled prop is true', () => {
-    render(<Button disabled>Disabled Button</Button>);
-    
-    const buttonElement = screen.getByRole('button');
-    expect(buttonElement).toBeDisabled();
+  it('handles onClick events', () => {
+    const handleClick = vi.fn();
+    const result = render(<Button onClick={handleClick}>Click Me</Button>);
+    unmount = result.unmount;
+    const button = result.container.querySelector('button');
+    if (button) {
+      fireEvent.click(button);
+    }
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('is disabled when disabled prop is true', () => {
+    const handleClick = vi.fn();
+    const result = render(
+      <Button onClick={handleClick} disabled>
+        Click Me
+      </Button>,
+    );
+    unmount = result.unmount;
+    const button = result.container.querySelector('button');
+    expect(button?.hasAttribute('disabled')).toBe(true);
+    if (button) {
+      fireEvent.click(button);
+    }
+    expect(handleClick).not.toHaveBeenCalled();
+  });
+
+  it('applies primary variant styles by default', () => {
+    const result = render(<Button>Primary Button</Button>);
+    unmount = result.unmount;
+    const button = result.container.querySelector('button');
+    expect(button?.classList.contains('bg-spotify-green')).toBe(true);
   });
 });

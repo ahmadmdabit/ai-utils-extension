@@ -107,4 +107,30 @@ describe('chromeService', () => {
       expect(key).toBeNull();
     });
   });
+
+  describe('Timeout Settings', () => {
+    it('should save the timeout setting to storage', async () => {
+      const { setTimeoutSetting } = await import('./chromeService');
+      await setTimeoutSetting(120);
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        processingTimeout: 120,
+      });
+    });
+
+    it('should retrieve the timeout setting if it exists', async () => {
+      const { getTimeoutSetting } = await import('./chromeService');
+      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+        processingTimeout: 150,
+      });
+      const timeout = await getTimeoutSetting();
+      expect(timeout).toBe(150);
+    });
+
+    it('should return the default timeout of 90 if none is set', async () => {
+      const { getTimeoutSetting } = await import('./chromeService');
+      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      const timeout = await getTimeoutSetting();
+      expect(timeout).toBe(90);
+    });
+  });
 });

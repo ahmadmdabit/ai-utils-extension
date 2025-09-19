@@ -29,10 +29,10 @@ function renderJob(job: Job): string {
         <a href="${linkHtml}" target="_blank" class="job-title">${safeTitle}</a>
         <p class="job-company">${safeCompany}</p>
         <p class="job-location">${safeLocation}</p>
-        <div>${statusBadgesHtml}</div>
         ${job.connections ? `<p class="insights">Connections: ${job.connections}</p>` : ''}
         ${safeInsights ? `<p class="insights">${safeInsights}</p>` : ''}
       </div>
+      <div class="job-status-wrapper">${statusBadgesHtml}</div>
     </div>
   `;
 }

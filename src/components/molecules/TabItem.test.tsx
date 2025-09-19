@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, fireEvent } from '../../test-utils';
 import { TabItem } from './TabItem';
 import type { Tab } from '../../types/chrome';
 
@@ -16,54 +16,77 @@ const mockTabWithoutFavicon: Tab = {
   url: 'https://anotherexample.com',
 };
 
-describe('TabItem component', () => {
-  it('renders the tab title and favicon correctly', () => {
-    render(<TabItem tab={mockTab} isSelected={false} onSelect={() => {}} />);
+describe('TabItem', () => {
+  let unmount: () => void;
 
-    expect(screen.getByText('Test Tab Title')).toBeInTheDocument();
-    const favicon = screen.getByAltText('favicon');
-    expect(favicon).toBeInTheDocument();
-    expect(favicon).toHaveAttribute('src', 'https://example.com/favicon.ico');
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
+  });
+
+  it('renders the tab title and favicon correctly', () => {
+    const result = render(
+      <TabItem tab={mockTab} isSelected={false} onSelect={() => {}} />,
+    );
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('Test Tab Title');
+    const favicon = result.container.querySelector('img[alt="favicon"]');
+    expect(favicon).not.toBeNull();
+    expect(favicon?.getAttribute('src')).toBe(
+      'https://example.com/favicon.ico',
+    );
   });
 
   it('falls back to the default icon when favIconUrl is not provided', () => {
-    render(
+    const result = render(
       <TabItem
         tab={mockTabWithoutFavicon}
         isSelected={false}
         onSelect={() => {}}
       />,
     );
-
-    expect(screen.getByText('Another Test Tab')).toBeInTheDocument();
-    const favicon = screen.getByAltText('favicon');
-    expect(favicon).toBeInTheDocument();
-    expect(favicon).toHaveAttribute('src', 'icons/icon512.png');
+    unmount = result.unmount;
+    expect(result.container.textContent).toContain('Another Test Tab');
+    const favicon = result.container.querySelector('img[alt="favicon"]');
+    expect(favicon).not.toBeNull();
+    expect(favicon?.getAttribute('src')).toBe('icons/icon512.png');
   });
 
   it('displays the checkbox as checked when isSelected is true', () => {
-    render(<TabItem tab={mockTab} isSelected={true} onSelect={() => {}} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).toBeChecked();
+    const result = render(
+      <TabItem tab={mockTab} isSelected={true} onSelect={() => {}} />,
+    );
+    unmount = result.unmount;
+    const checkbox = result.container.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    expect(checkbox).not.toBeNull();
+    expect(checkbox.checked).toBe(true);
   });
 
   it('displays the checkbox as unchecked when isSelected is false', () => {
-    render(<TabItem tab={mockTab} isSelected={false} onSelect={() => {}} />);
-
-    const checkbox = screen.getByRole('checkbox');
-    expect(checkbox).not.toBeChecked();
+    const result = render(
+      <TabItem tab={mockTab} isSelected={false} onSelect={() => {}} />,
+    );
+    unmount = result.unmount;
+    const checkbox = result.container.querySelector(
+      'input[type="checkbox"]',
+    ) as HTMLInputElement;
+    expect(checkbox).not.toBeNull();
+    expect(checkbox.checked).toBe(false);
   });
 
   it('calls the onSelect callback with the correct tab id when the checkbox is clicked', () => {
     const handleSelect = vi.fn();
-    render(
+    const result = render(
       <TabItem tab={mockTab} isSelected={false} onSelect={handleSelect} />,
     );
-
-    const checkbox = screen.getByRole('checkbox');
-    fireEvent.click(checkbox);
-
+    unmount = result.unmount;
+    const checkbox = result.container.querySelector('input[type="checkbox"]');
+    if (checkbox) {
+      fireEvent.click(checkbox);
+    }
     expect(handleSelect).toHaveBeenCalledTimes(1);
     expect(handleSelect).toHaveBeenCalledWith(1);
   });

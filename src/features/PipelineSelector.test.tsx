@@ -1,9 +1,17 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, fireEvent } from '../test-utils';
 import { PipelineSelector } from './PipelineSelector';
 import type { PipelineOperation } from '../types/messaging';
 
-describe('PipelineSelector component', () => {
+describe('PipelineSelector', () => {
+  let unmount: () => void;
+
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
+  });
+
   const pipelines: { id: PipelineOperation; label: string }[] = [
     { id: 'summarize', label: 'Summarize' },
     { id: 'translate', label: 'Translate' },
@@ -19,49 +27,66 @@ describe('PipelineSelector component', () => {
   };
 
   it('renders the select element with all pipeline options', () => {
-    render(<PipelineSelector {...defaultProps} />);
+    const result = render(<PipelineSelector {...defaultProps} />);
+    unmount = result.unmount;
 
-    const selectElement = screen.getByRole('combobox');
-    expect(selectElement).toBeInTheDocument();
+    const selectElement = result.container.querySelector('select');
+    expect(selectElement).not.toBeNull();
 
     pipelines.forEach((pipeline) => {
-      expect(
-        screen.getByRole('option', { name: pipeline.label }),
-      ).toBeInTheDocument();
+      const option = result.container.querySelector(
+        `option[value="${pipeline.id}"]`,
+      );
+      expect(option).not.toBeNull();
+      expect(option?.textContent).toBe(pipeline.label);
     });
   });
 
   it('displays the correct selected pipeline', () => {
-    render(<PipelineSelector {...defaultProps} selectedPipeline="translate" />);
-    const selectElement = screen.getByRole('combobox') as HTMLSelectElement;
+    const result = render(
+      <PipelineSelector {...defaultProps} selectedPipeline="translate" />,
+    );
+    unmount = result.unmount;
+    const selectElement = result.container.querySelector(
+      'select',
+    ) as HTMLSelectElement;
     expect(selectElement.value).toBe('translate');
   });
 
   it('calls onPipelineChange with the new value when an option is selected', () => {
     const onPipelineChangeMock = vi.fn();
-    render(
+    const result = render(
       <PipelineSelector
         {...defaultProps}
         onPipelineChange={onPipelineChangeMock}
       />,
     );
+    unmount = result.unmount;
 
-    const selectElement = screen.getByRole('combobox');
-    fireEvent.change(selectElement, { target: { value: 'scrape' } });
+    const selectElement = result.container.querySelector('select');
+    if (selectElement) {
+      fireEvent.change(selectElement, { target: { value: 'scrape' } });
+    }
 
     expect(onPipelineChangeMock).toHaveBeenCalledTimes(1);
     expect(onPipelineChangeMock).toHaveBeenCalledWith('scrape');
   });
 
   it('disables the fieldset when isDisabled is true', () => {
-    render(<PipelineSelector {...defaultProps} isDisabled={true} />);
-    const fieldset = screen.getByRole('group');
-    expect(fieldset).toBeDisabled();
+    const result = render(
+      <PipelineSelector {...defaultProps} isDisabled={true} />,
+    );
+    unmount = result.unmount;
+    const fieldset = result.container.querySelector('fieldset');
+    expect(fieldset?.hasAttribute('disabled')).toBe(true);
   });
 
   it('does not disable the fieldset when isDisabled is false', () => {
-    render(<PipelineSelector {...defaultProps} isDisabled={false} />);
-    const fieldset = screen.getByRole('group');
-    expect(fieldset).not.toBeDisabled();
+    const result = render(
+      <PipelineSelector {...defaultProps} isDisabled={false} />,
+    );
+    unmount = result.unmount;
+    const fieldset = result.container.querySelector('fieldset');
+    expect(fieldset?.hasAttribute('disabled')).toBe(false);
   });
 });

@@ -43,6 +43,24 @@ describe('Service Worker Message Listener', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal('chrome', {
+      runtime: {
+        onMessage: {
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+        },
+        sendMessage: vi.fn(),
+      },
+      tabs: {
+        query: vi.fn(),
+        get: vi.fn(),
+        create: vi.fn(), // Ensure create exists on the mock
+      },
+      scripting: {
+        executeScript: vi.fn(),
+      },
+    });
+
     vi.mocked(geminiService.processText).mockResolvedValue(
       'default mock result',
     );
@@ -51,6 +69,7 @@ describe('Service Worker Message Listener', () => {
       callback([mockTab, { ...mockTab, id: 2 }]),
     );
     vi.mocked(chrome.tabs.get).mockImplementation(async () => mockTab);
+    vi.mocked(chrome.tabs.create).mockImplementation(async () => mockTab);
     vi.mocked(chrome.scripting.executeScript).mockImplementation(async () => [
       { result: 'page content' },
     ]);
@@ -197,5 +216,116 @@ describe('Service Worker Message Listener', () => {
     expect(console.error).toHaveBeenCalledWith(
       'Unknown pipeline: unknown-pipeline',
     );
+  });
+
+  it('should handle a LinkedIn scrape with JSON output', async () => {
+    const sendResponse = vi.fn();
+    const message: Message = {
+      type: 'START_PROCESSING',
+      payload: createPayload({
+        pipeline: 'scrape',
+        scrapeOption: 'linkedin-jobs',
+        outputFormat: 'json',
+        tabs: [1],
+      }),
+    };
+
+    // Mock the content to be a LinkedIn page
+    vi.mocked(chrome.scripting.executeScript).mockImplementation(async () => [
+      {
+        result:
+          '<html><body><div class="job-card-list__title">Job Title</div></body></html>',
+      },
+    ]);
+
+    await messageListener(
+      message,
+      {} as chrome.runtime.MessageSender,
+      sendResponse,
+    );
+
+    // Check that the final message contains a JSON string
+    const lastCall = vi.mocked(chrome.runtime.sendMessage).mock.calls.pop();
+    const messageSent = lastCall?.[0] as unknown as { payload: any };
+    const resultPayload = messageSent.payload;
+    expect(resultPayload.status).toBe('complete');
+    expect(() => JSON.parse(resultPayload.result)).not.toThrow();
+  });
+
+  it('should handle a LinkedIn scrape with HTML output and create a new tab', async () => {
+    const sendResponse = vi.fn();
+    const message: Message = {
+      type: 'START_PROCESSING',
+      payload: createPayload({
+        pipeline: 'scrape',
+        scrapeOption: 'linkedin-jobs',
+        outputFormat: 'html',
+        tabs: [1],
+      }),
+    };
+
+    vi.mocked(chrome.scripting.executeScript).mockImplementation(async () => [
+      {
+        result:
+          '<html><body><div class="job-card-list__title">Job Title</div></body></html>',
+      },
+    ]);
+
+    await messageListener(
+      message,
+      {} as chrome.runtime.MessageSender,
+      sendResponse,
+    );
+
+    // Check that a new tab was created with the HTML content
+    expect(chrome.tabs.create).toHaveBeenCalledWith({
+      url: expect.stringContaining('data:text/html;charset=UTF-8,'),
+    });
+  });
+
+  it('should reject a new process if one is already running', async () => {
+    setIsProcessing(true); // Manually set processing state
+    const sendResponse = vi.fn();
+    const message: Message = {
+      type: 'START_PROCESSING',
+      payload: createPayload({}),
+    };
+
+    await messageListener(
+      message,
+      {} as chrome.runtime.MessageSender,
+      sendResponse,
+    );
+
+    expect(console.warn).toHaveBeenCalledWith(
+      '[DEBUG] A process is already running.',
+    );
+    expect(sendResponse).toHaveBeenCalledWith({ status: 'busy' });
+  });
+
+  it('should handle a critical error in the message listener', async () => {
+    const sendResponse = vi.fn();
+    const errorMessage = 'Critical failure';
+    vi.mocked(chromeService.getTimeoutSetting).mockRejectedValue(
+      new Error(errorMessage),
+    );
+
+    const message: Message = {
+      type: 'START_PROCESSING',
+      payload: createPayload({}),
+    };
+
+    await messageListener(
+      message,
+      {} as chrome.runtime.MessageSender,
+      sendResponse,
+    );
+
+    const lastCall = vi.mocked(chrome.runtime.sendMessage).mock.calls.pop();
+    const messageSent = lastCall?.[0] as unknown as { payload: any };
+    const resultPayload = messageSent.payload;
+
+    expect(resultPayload.status).toBe('error');
+    expect(resultPayload.error).toContain(errorMessage);
   });
 });

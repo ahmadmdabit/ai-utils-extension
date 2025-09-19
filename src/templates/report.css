@@ -42,6 +42,7 @@ h2 {
     width: 3.125rem;
     height: 3.125rem;
     border-radius: .6rem;
+    border: .18rem solid #FFFFFF;
 }
 
 .job-details {
@@ -67,8 +68,30 @@ h2 {
     margin: 0 0 .2rem 0;
 }
 
+.job-company {
+    color: #cdcdcd;
+}
+
+.job-location {
+    color: #1ED760;
+}
+
+.insights {
+    color: #FFFFFF;
+}
+
+.job-status-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 6rem;
+    width: 6rem;
+    max-width: 12rem;
+}
+
 .job-status {
-    display: inline-block;
+    display: flex;
+    flex-grow: 1;
     background-color: #1DB954;
     color: #121212;
     padding: .25rem .5rem;
@@ -76,6 +99,7 @@ h2 {
     font-size: 0.8rem;
     font-weight: bold;
     margin-right: .5rem;
+    margin-bottom: .2rem;
 }
 
 .filters {

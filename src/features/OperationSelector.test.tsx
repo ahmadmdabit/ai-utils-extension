@@ -1,8 +1,16 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, fireEvent } from '../test-utils';
 import { OperationSelector } from './OperationSelector';
 
-describe('OperationSelector component', () => {
+describe('OperationSelector', () => {
+  let unmount: () => void;
+
+  afterEach(() => {
+    if (unmount) {
+      unmount();
+    }
+  });
+
   const defaultProps = {
     selectedOps: [],
     onOpSelect: vi.fn(),
@@ -12,91 +20,160 @@ describe('OperationSelector component', () => {
     selectedTabCount: 0,
   };
 
+  const getCheckboxByLabel = (container: HTMLElement, text: string) => {
+    const label = Array.from(container.querySelectorAll('label')).find(
+      (l) => l.textContent === text,
+    );
+    const inputId = label?.getAttribute('for');
+    return container.querySelector(`input#${inputId}`);
+  };
+
   it('renders all operation checkboxes correctly', () => {
-    render(<OperationSelector {...defaultProps} />);
-    expect(screen.getByLabelText('Summarize')).toBeInTheDocument();
-    expect(screen.getByLabelText('Scrape Data')).toBeInTheDocument();
-    expect(screen.getByLabelText('Translate')).toBeInTheDocument();
-    expect(screen.getByLabelText('Combine results')).toBeInTheDocument();
+    const result = render(<OperationSelector {...defaultProps} />);
+    unmount = result.unmount;
+    expect(getCheckboxByLabel(result.container, 'Summarize')).not.toBeNull();
+    expect(getCheckboxByLabel(result.container, 'Scrape Data')).not.toBeNull();
+    expect(getCheckboxByLabel(result.container, 'Translate')).not.toBeNull();
+    expect(
+      getCheckboxByLabel(result.container, 'Combine results'),
+    ).not.toBeNull();
   });
 
   it('disables the entire fieldset when isDisabled is true', () => {
-    render(<OperationSelector {...defaultProps} isDisabled={true} />);
-    const fieldset = screen.getByRole('group');
-    expect(fieldset).toBeDisabled();
+    const result = render(
+      <OperationSelector {...defaultProps} isDisabled={true} />,
+    );
+    unmount = result.unmount;
+    const fieldset = result.container.querySelector('fieldset');
+    expect(fieldset?.hasAttribute('disabled')).toBe(true);
   });
 
   it('reflects the selectedOps prop in checkbox states', () => {
-    render(
+    const result = render(
       <OperationSelector
         {...defaultProps}
         selectedOps={['summarize', 'translate']}
       />,
     );
-    expect(screen.getByLabelText('Summarize')).toBeChecked();
-    expect(screen.getByLabelText('Translate')).toBeChecked();
-    expect(screen.getByLabelText('Scrape Data')).not.toBeChecked();
+    unmount = result.unmount;
+    expect(
+      (getCheckboxByLabel(result.container, 'Summarize') as HTMLInputElement)
+        ?.checked,
+    ).toBe(true);
+    expect(
+      (getCheckboxByLabel(result.container, 'Translate') as HTMLInputElement)
+        ?.checked,
+    ).toBe(true);
+    expect(
+      (getCheckboxByLabel(result.container, 'Scrape Data') as HTMLInputElement)
+        ?.checked,
+    ).toBe(false);
   });
 
   it('calls onOpSelect with the correct operation when a checkbox is clicked', () => {
     const onOpSelectMock = vi.fn();
-    render(<OperationSelector {...defaultProps} onOpSelect={onOpSelectMock} />);
+    const result = render(
+      <OperationSelector {...defaultProps} onOpSelect={onOpSelectMock} />,
+    );
+    unmount = result.unmount;
 
-    fireEvent.click(screen.getByLabelText('Scrape Data'));
+    const scrapeCheckbox = getCheckboxByLabel(result.container, 'Scrape Data');
+    if (scrapeCheckbox) {
+      fireEvent.click(scrapeCheckbox);
+    }
     expect(onOpSelectMock).toHaveBeenCalledTimes(1);
     expect(onOpSelectMock).toHaveBeenCalledWith('scrape');
   });
 
   it('disables the "Combine results" checkbox when selectedTabCount is 1 or less', () => {
-    const { rerender } = render(
+    let result = render(
       <OperationSelector {...defaultProps} selectedTabCount={1} />,
     );
-    expect(screen.getByLabelText('Combine results')).toBeDisabled();
+    unmount = result.unmount;
+    expect(
+      getCheckboxByLabel(result.container, 'Combine results')?.hasAttribute(
+        'disabled',
+      ),
+    ).toBe(true);
 
-    rerender(<OperationSelector {...defaultProps} selectedTabCount={0} />);
-    expect(screen.getByLabelText('Combine results')).toBeDisabled();
+    unmount();
+    result = render(
+      <OperationSelector {...defaultProps} selectedTabCount={0} />,
+    );
+    unmount = result.unmount;
+    expect(
+      getCheckboxByLabel(result.container, 'Combine results')?.hasAttribute(
+        'disabled',
+      ),
+    ).toBe(true);
   });
 
   it('enables the "Combine results" checkbox when selectedTabCount is greater than 1', () => {
-    render(<OperationSelector {...defaultProps} selectedTabCount={2} />);
-    expect(screen.getByLabelText('Combine results')).not.toBeDisabled();
+    const result = render(
+      <OperationSelector {...defaultProps} selectedTabCount={2} />,
+    );
+    unmount = result.unmount;
+    expect(
+      getCheckboxByLabel(result.container, 'Combine results')?.hasAttribute(
+        'disabled',
+      ),
+    ).toBe(false);
   });
 
   it('reflects the isCombineChecked prop when combining is possible', () => {
-    render(
+    const result = render(
       <OperationSelector
         {...defaultProps}
         selectedTabCount={2}
         isCombineChecked={true}
       />,
     );
-    expect(screen.getByLabelText('Combine results')).toBeChecked();
+    unmount = result.unmount;
+    expect(
+      (
+        getCheckboxByLabel(
+          result.container,
+          'Combine results',
+        ) as HTMLInputElement
+      )?.checked,
+    ).toBe(true);
   });
 
   it('does not check "Combine results" even if isCombineChecked is true, if combining is not possible', () => {
-    render(
+    const result = render(
       <OperationSelector
         {...defaultProps}
         selectedTabCount={1}
         isCombineChecked={true}
       />,
     );
-    const combineCheckbox = screen.getByLabelText('Combine results');
-    expect(combineCheckbox).toBeDisabled();
-    expect(combineCheckbox).not.toBeChecked();
+    unmount = result.unmount;
+    const combineCheckbox = getCheckboxByLabel(
+      result.container,
+      'Combine results',
+    ) as HTMLInputElement;
+    expect(combineCheckbox.hasAttribute('disabled')).toBe(true);
+    expect(combineCheckbox.checked).toBe(false);
   });
 
   it('calls onCombineChange with the correct value when the "Combine results" checkbox is clicked', () => {
     const onCombineChangeMock = vi.fn();
-    render(
+    const result = render(
       <OperationSelector
         {...defaultProps}
         selectedTabCount={2}
         onCombineChange={onCombineChangeMock}
       />,
     );
+    unmount = result.unmount;
 
-    fireEvent.click(screen.getByLabelText('Combine results'));
+    const combineCheckbox = getCheckboxByLabel(
+      result.container,
+      'Combine results',
+    );
+    if (combineCheckbox) {
+      fireEvent.click(combineCheckbox);
+    }
     expect(onCombineChangeMock).toHaveBeenCalledTimes(1);
     expect(onCombineChangeMock).toHaveBeenCalledWith(true);
   });
