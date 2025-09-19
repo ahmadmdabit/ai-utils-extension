@@ -14,21 +14,22 @@ export default defineConfig({
     // Run `yarn build --stats` to generate the report
     ...(process.env.ANALYZE === 'true'
       ? [
-        visualizer({
-          open: true,
-          filename: 'dist/stats.html',
-          gzipSize: true,
-          brotliSize: true,
-        }) as PluginOption,
-        analyze({
-          summaryOnly: true,
-          limit: 20,
-        }) as PluginOption,
-      ]
+          visualizer({
+            open: true,
+            filename: 'dist/stats.html',
+            gzipSize: true,
+            brotliSize: true,
+          }) as PluginOption,
+          analyze({
+            summaryOnly: true,
+            limit: 20,
+          }) as PluginOption,
+        ]
       : []),
   ],
   // Add this build configuration
   build: {
+    sourcemap: true,
     rollupOptions: {
       input: {
         sidepanel: resolve(__dirname, 'sidepanel.html'),

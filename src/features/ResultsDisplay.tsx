@@ -37,10 +37,9 @@ export function ResultsDisplay({ tasks, onClear }: ResultsDisplayProps) {
             <div className="flex justify-between items-center">
               <div className="w-full">
                 {/* --- UPDATE THIS PART --- */}
-                <p
-                  className={`text-sm font-bold truncate ${task.isCombinedResult ? 'text-spotify-green' : 'text-white'}`}
-                >
-                  {task.tabTitle}
+                <p className={`text-sm font-bold truncate text-spotify-green`}>
+                  {task.isCombinedResult ? '⬤' : ''}{' '}
+                  {task.tabTitle?.replaceAll(/\|/g, '-')}
                 </p>
                 {/* ---------------------- */}
                 <p className="text-xs text-spotify-light-gray capitalize">

@@ -30,6 +30,7 @@ describe('chromeService', () => {
           customLanguage: '',
           combineResults: false,
           selectedModel: 'gemini-2.5-flash-lite',
+          outputFormat: 'json',
         },
       };
 

@@ -1,4 +1,3 @@
-// src/background/service-worker.ts
 import type {
   Message,
   Task,
@@ -8,6 +7,8 @@ import type {
 import { processText } from '../services/geminiService';
 import { getTimeoutSetting } from '../services/chromeService';
 import { pipelines } from './pipelines';
+import { parseLinkedInPage } from './scrapers';
+import { renderLinkedInDataToHtml } from './renderer';
 
 console.log('Service Worker Loaded');
 
@@ -20,16 +21,23 @@ export function setIsProcessing(value: boolean) {
 }
 
 async function getContent(tabId: number): Promise<string> {
-  console.log(`[DEBUG] Getting content for tab ${tabId}`);
+  // For LinkedIn, we need the full HTML, not just innerText
+  const tab = await chrome.tabs.get(tabId);
+  if (tab.url && tab.url.includes('linkedin.com/jobs/search')) {
+    console.log(`[DEBUG] Getting full HTML for LinkedIn tab ${tabId}`);
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => document.documentElement.outerHTML,
+    });
+    return results?.[0]?.result || '';
+  }
+  // For all other pages, get the simple text content
+  console.log(`[DEBUG] Getting innerText for tab ${tabId}`);
   const results = await chrome.scripting.executeScript({
     target: { tabId },
     func: () => document.body.innerText,
   });
-  const content = results?.[0]?.result || '';
-  console.log(
-    `[DEBUG] Retrieved content for tab ${tabId} with length: ${content.length}`,
-  );
-  return content;
+  return results?.[0]?.result || '';
 }
 
 async function runWorkflow(
@@ -47,31 +55,20 @@ async function runWorkflow(
     return;
   }
 
-  console.log(`[DEBUG] Pipeline ${pipeline} has ${pipelineSteps.length} steps`);
-
   const workflowState: Record<string, string> = {};
 
   try {
     // Step 1: Get content for all tabs in parallel.
-    console.log(`[DEBUG] Getting content for ${tabs.length} tabs`);
     const contentResults = await Promise.all(
       tabs.map((tabId) => getContent(tabId)),
     );
-
     if (signal.aborted) throw new Error('Workflow cancelled by user.');
-
     tabs.forEach((tabId, index) => {
       workflowState[`content_${tabId}`] = contentResults[index];
-      console.log(
-        `[DEBUG] Content for tab ${tabId} (length: ${contentResults[index].length}) stored in workflowState`,
-      );
     });
 
     // Step 2: Execute the defined pipeline steps sequentially.
     for (const step of pipelineSteps) {
-      console.log(
-        `[DEBUG] Executing pipeline step: ${step.name} (input: ${step.input}, output: ${step.output})`,
-      );
       if (signal.aborted) throw new Error('Workflow cancelled by user.');
       const inputsForThisStep = tabs.map(
         (tabId) => workflowState[`${step.input}_${tabId}`],
@@ -79,30 +76,54 @@ async function runWorkflow(
 
       const stepResults: string[] = [];
       for (const [index, input] of inputsForThisStep.entries()) {
-        console.log(
-          `[DEBUG] Processing tab ${tabs[index]} with input length: ${input.length}`,
-        );
         if (signal.aborted) throw new Error('Workflow cancelled by user.');
-        const result = await processText(
-          step.name,
-          input,
-          options.selectedModel,
-          options.languageOption === 'custom'
-            ? options.customLanguage
-            : options.languageOption,
-          signal,
-        );
-        console.log(
-          `[DEBUG] ProcessText result for tab ${tabs[index]} (length: ${result.length})`,
-        );
+
+        let result: string;
+        // --- THIS IS THE FIX: Special handling for LinkedIn scrape ---
+        if (
+          step.name === 'scrape' &&
+          options.scrapeOption === 'linkedin-jobs'
+        ) {
+          console.log(
+            `[DEBUG] Executing LinkedIn Page Parser for tab ${tabs[index]}`,
+          );
+          const parsedData = parseLinkedInPage(input);
+          // --- THIS IS THE FIX: Check the output format ---
+          if (options.outputFormat === 'html') {
+            result = renderLinkedInDataToHtml(parsedData);
+            // Open in new tab
+            chrome.tabs.create({
+              url: 'data:text/html;charset=UTF-8,' + encodeURIComponent(result),
+            });
+            // chrome.windows.create({
+            //   url: 'data:text/html;charset=UTF-8,' + encodeURIComponent(result),
+            //   type: 'popup',
+            //   width: 500,
+            //   height: 600,
+            // });
+          } else {
+            // Default to JSON
+            result = JSON.stringify(parsedData, null, 2);
+          }
+          // -------------------------------------------------
+        } else {
+          // Original logic for all other operations
+          result = await processText(
+            step.name,
+            input,
+            options.selectedModel,
+            options.languageOption === 'custom'
+              ? options.customLanguage
+              : options.languageOption,
+            signal,
+          );
+        }
+        // -----------------------------------------------------------
         stepResults.push(result);
       }
 
       tabs.forEach((tabId, index) => {
         workflowState[`${step.output}_${tabId}`] = stepResults[index];
-        console.log(
-          `[DEBUG] Step result for tab ${tabId} stored in workflowState as ${step.output}_${tabId}`,
-        );
       });
     }
 

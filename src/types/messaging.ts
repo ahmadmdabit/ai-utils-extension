@@ -3,7 +3,8 @@ export type ScrapeOption =
   | 'headings'
   | 'links'
   | 'tables'
-  | 'custom';
+  | 'custom'
+  | 'linkedin-jobs';
 
 export type LanguageOption = 'Turkish' | 'Arabic' | 'English' | 'custom';
 
@@ -20,6 +21,41 @@ export type GeminiModel =
   | 'gemini-2.5-flash'
   | 'gemini-2.5-flash-lite';
 
+// --- ADD NEW INTERFACES FOR LINKEDIN DATA ---
+export interface Job {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  statuses: string[];
+  image: string;
+  link: string;
+  insights: string;
+  connections: number | null;
+}
+
+export interface Insights {
+  totalApplicants: number;
+  applicantsPastDay: number;
+  competitors: string[];
+}
+
+export interface Company {
+  name: string;
+  description: string;
+  headcountGrowth: string;
+}
+
+export interface LinkedInPageData {
+  searchQuery: string;
+  totalResults: number;
+  jobs: Job[];
+  insights: Insights;
+  company: Company;
+}
+
+export type OutputFormat = 'json' | 'html';
+
 export interface StartProcessingPayload {
   tabs: number[];
   pipeline: PipelineOperation;
@@ -28,7 +64,8 @@ export interface StartProcessingPayload {
   languageOption: LanguageOption;
   customLanguage?: string;
   combineResults: boolean;
-  selectedModel: GeminiModel; // <-- ADD
+  selectedModel: GeminiModel;
+  outputFormat: OutputFormat;
 }
 
 // A new, comprehensive Task type
@@ -46,7 +83,8 @@ export interface Task {
   languageOption?: LanguageOption;
   customLanguage?: string;
   isCombinedResult?: boolean;
-  selectedModel?: GeminiModel; // <-- ADD
+  selectedModel?: GeminiModel;
+  outputFormat?: OutputFormat;
 }
 
 export type Message =

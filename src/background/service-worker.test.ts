@@ -20,6 +20,7 @@ describe('Service Worker Message Listener', () => {
     customLanguage: '',
     combineResults: false,
     selectedModel: 'gemini-2.5-flash-lite',
+    outputFormat: 'json',
     ...overrides,
   });
 

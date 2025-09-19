@@ -12,6 +12,7 @@ const options: { id: ScrapeOption; label: string }[] = [
   { id: 'headings', label: 'Extract all headings' },
   { id: 'links', label: 'Extract all links' },
   { id: 'tables', label: 'Extract tabular data' },
+  { id: 'linkedin-jobs', label: 'Parse LinkedIn Jobs Page' },
   { id: 'custom', label: 'Use custom prompt (AI)' },
 ];
 

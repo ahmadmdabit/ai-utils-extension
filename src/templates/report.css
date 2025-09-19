@@ -1,0 +1,124 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #121212;
+    color: #B3B3B3;
+    margin: 0;
+    padding: 2rem;
+}
+
+.container {
+    max-width: 50rem;
+    margin: auto;
+}
+
+h1,
+h2 {
+    color: #FFFFFF;
+    background: #393939;
+    border-radius: .6rem;
+    padding: .6rem;
+    margin-bottom: .6rem;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+.job-card {
+    background-color: #282828;
+    border-radius: .6rem;
+    padding: .6rem;
+    margin-bottom: .6rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.job-card img {
+    width: 3.125rem;
+    height: 3.125rem;
+    border-radius: .6rem;
+}
+
+.job-details {
+    flex-grow: 1;
+}
+
+.job-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.job-title:hover {
+    text-decoration: none;
+    color: #1ED760;
+}
+
+.job-company,
+.job-location,
+.insights {
+    font-size: 1rem;
+    margin: 0 0 .2rem 0;
+}
+
+.job-status {
+    display: inline-block;
+    background-color: #1DB954;
+    color: #121212;
+    padding: .25rem .5rem;
+    border-radius: .6rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-right: .5rem;
+}
+
+.filters {
+    background-color: #282828;
+    padding: .6rem;
+    border-radius: .6rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.filters input,
+.filters select {
+    flex-grow: 1;
+    max-width: 100%;
+    padding: 0.5rem;
+    border-radius: .6rem;
+    background-color: #404040;
+    color: #FFFFFF;
+    border: .063rem solid #555;
+}
+
+.filters button {
+    padding: 0.5rem 1rem;
+    background-color: #1DB954;
+    color: #121212;
+    border: none;
+    border-radius: .6rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    color: #FFFFFF;
+    font-size: 0.9rem;
+}
+
+.checkbox-label input {
+    margin-right: 0.5rem;
+    accent-color: #1DB954;
+}
