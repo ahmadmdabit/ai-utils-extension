@@ -11,7 +11,7 @@ This is a Chrome Extension built with React, TypeScript, and Vite. It leverages 
 *   **Framework:** React 19 (with Hooks), Vite
 *   **Language:** TypeScript
 *   **Styling:** Tailwind CSS v4 (using `@theme` directive), SCSS
-*   **Testing:** Vitest, React Testing Library
+*   **Testing:** Vitest, Native React DOM Testing Utilities
 *   **Extension APIs:** Chrome Manifest V3 (`sidePanel`, `scripting`, `tabs`, `storage`)
 *   **Linting/Formatting:** ESLint (Flat Config), Prettier
 *   **Git Hooks:** Husky & lint-staged
@@ -25,6 +25,8 @@ The project uses a feature-sliced, atomic design-inspired structure:
 /src
 ├── assets/          # Static assets like icons
 ├── background/      # Service worker and related logic
+│   ├── templates/   # HTML, CSS, JS for rendered reports
+│   └── ...
 ├── components/      # Reusable, "dumb" UI components (Atoms, Molecules)
 ├── features/        # "Smart" components that compose smaller components
 ├── services/        # API clients and Chrome API wrappers
@@ -53,7 +55,7 @@ To load the extension in Chrome:
 *   **Git Workflow:** GitFlow model (`main`, `develop`, `feature/*` branches).
 *   **Commit Messages:** Conventional Commits specification.
 *   **Coding Style:** Enforced by Prettier (formatting) and ESLint (linting). Husky and lint-staged automate linting/formatting on commit.
-*   **Testing:** The project maintains a high level of unit and component test coverage using Vitest and React Testing Library. A global mock for the `chrome` API is defined in `src/setupTests.ts`.
+*   **Testing:** The project maintains a high level of unit and component test coverage using Vitest and native React DOM testing utilities. A global mock for the `chrome` API is defined in `src/setupTests.ts`.
 *   **Architecture:** The background script (`src/background/service-worker.ts`) acts as a "Step-First" workflow engine. It processes declarative pipeline definitions from `src/background/pipelines.ts`, handling sequential steps, parallel processing of tabs, and synthesis of results. The `geminiService.ts` handles all communication with the Gemini API.
 
 ## Key Files
@@ -67,6 +69,7 @@ To load the extension in Chrome:
 *   `src/types/messaging.ts`: Defines TypeScript types for all messages and data structures.
 *   `src/features/PipelineSelector.tsx`: Component for selecting the main processing action.
 *   `src/features/ActionOptions.tsx`: Component for configuring the AI model and "Combine Tabs" option.
+*   `src/features/OutputFormatSelector.tsx`: Component for selecting output format for LinkedIn job scraping.
 
 ## React Development Expertise
 
@@ -81,7 +84,7 @@ This project context is enhanced with specific expertise in React development, e
     *   **Component Libraries:** Knowledge of building custom, reusable component libraries, following the project's atomic design-inspired structure.
     *   **Form Handling:** Experience with managing form state and validation.
     *   **Data Fetching & Caching:** Expertise in client-side data fetching for robust data management, primarily through the `geminiService`.
-    *   **Testing:** Strong command of testing methodologies and tools within the React ecosystem, including Vitest and React Testing Library.
+    *   **Testing:** Strong command of testing methodologies and tools within the React ecosystem, including Vitest and native React DOM testing utilities.
 *   **Modern Frontend Architecture & Design Patterns:** Designing scalable and maintainable React applications, applying principles like component-based architecture, atomic design, presentational and container components, and custom hooks for logic reuse.
 *   **Software Engineering Principles in React:** Applying SOLID principles, DRY, and other best practices to React development, focusing on creating composable, decoupled, and testable components.
 *   **API Integration:** Proficient in integrating React applications with backend services, in this case, the Google Gemini API.
