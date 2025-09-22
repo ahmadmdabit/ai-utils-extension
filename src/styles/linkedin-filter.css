@@ -1,0 +1,156 @@
+:root {
+  /* Background Colors */
+  --ln-bg-card: #ffffff;
+  --ln-bg-input: #ffffff;
+  --ln-bg-btn-secondary: #ffffff;
+
+  /* Border Colors */
+  --ln-border: #e0e0e0;
+  --ln-border-input: #d0d0d0;
+
+  /* Text Colors */
+  --ln-text-primary: #000000;
+  --ln-text-secondary: #000000e6;
+  --ln-text-placeholder: #00000070;
+
+  /* Brand Colors */
+  --ln-blue: #0077b5;
+  --ln-blue-hover: #005e94;
+  --ln-blue-active: #004b7a;
+
+  /* Layout & Spacing */
+  --ln-border-radius-card: 0.5rem;
+  --ln-border-radius-input: 0.6rem;
+  --ln-shadow-card: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+  --ln-focus-ring: 0 0 0 0.125rem var(--ln-blue);
+}
+
+.ai-utils-job-filter {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  right: auto;
+  bottom: auto;
+  background: var(--ln-bg-card);
+  border: 0.063rem solid var(--ln-border);
+  border-radius: var(--ln-border-radius-card);
+  box-shadow: var(--ln-shadow-card);
+  padding: 1rem;
+  z-index: 1000;
+  width: 22.9rem;
+  min-height: 18.75rem;
+}
+
+.ai-utils-job-filter .filter-title {
+  color: var(--ln-text-primary);
+  margin-bottom: 1rem;
+}
+
+.ai-utils-job-filter .filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.ai-utils-job-filter .filter-checkbox-label input + span {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  line-height: 1.25rem;
+  color: var(--ln-text-secondary);
+}
+
+.ai-utils-job-filter .filter-checkbox-label input + span:before {
+  content: '';
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: .6rem;
+  border: 0.063rem solid var(--ln-border);
+  border-radius:.29rem;
+  background-color: var(--ln-bg-input);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.ai-utils-job-filter .filter-checkbox-label input:checked + span:before {
+  background-color: var(--ln-blue);
+  border-color: var(--ln-blue);
+}
+
+.ai-utils-job-filter .filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ai-utils-job-filter .refresh-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 0.125rem solid var(--ln-border);
+  border-radius: 50%;
+  border-top-color: var(--ln-blue);
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 0.5rem;
+}
+
+.ai-utils-job-filter .refresh-loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.ai-utils-job-filter .refresh-success {
+  background-color: #e8f5e8 !important;
+  border-color: #4caf50 !important;
+  color: #2e7d32 !important;
+}
+
+.ai-utils-job-filter .refresh-error {
+  background-color: #ffebee !important;
+  border-color: #f4364f !important;
+  color: #c6283d !important;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Drag functionality styles */
+.filter-drag-handle {
+  cursor: move !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.filter-drag-handle:hover {
+  background-color: rgba(0, 119, 181, 0.1);
+  border-radius: 0.25rem;
+}
+
+.filter-draggable {
+  transition: none !important;
+}
+
+.filter-dragging {
+  transition: none !important;
+  cursor: move !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none !important;
+  z-index: 1001 !important;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2) !important;
+  opacity: 0.9 !important;
+}
+
+.filter-dragging * {
+  pointer-events: none !important;
+}

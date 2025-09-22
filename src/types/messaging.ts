@@ -93,4 +93,6 @@ export type Message =
   | { type: 'TASK_STARTED'; payload: { taskId: string } }
   | { type: 'TASK_COMPLETE'; payload: Task }
   | { type: 'TASK_ERROR'; payload: Task }
-  | { type: 'CANCEL_PROCESSING' };
+  | { type: 'CANCEL_PROCESSING' }
+  | { type: 'LINKEDIN_FILTER_TOGGLE' }
+  | { type: 'LINKEDIN_FILTER_STATE'; payload: { isVisible: boolean } };

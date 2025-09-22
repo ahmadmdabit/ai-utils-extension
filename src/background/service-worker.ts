@@ -392,6 +392,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
+// Add this new listener for extension icon clicks
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    // Option 1: Open side panel for current tab (recommended)
+    // Tested it open side panel panel globally also!
+    // await chrome.sidePanel.open({ tabId: tab.id, windowId: tab.windowId });
+
+    // Option 2: Open side panel globally (affects all tabs)
+    await chrome.sidePanel.open({ tabId: undefined, windowId: tab.windowId });
+
+    console.log('Side panel opened successfully');
+  } catch (error) {
+    console.error('Error opening side panel:', error);
+  }
+});
+
 function getTitleGenerationPrompt(texts: string[]): string {
   const joinedTexts = texts
     .map(

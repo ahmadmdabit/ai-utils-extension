@@ -19,26 +19,30 @@ import type {
   OutputFormat,
 } from './types/messaging';
 import { GearIcon } from './components/atoms/icons/GearIcon';
+import { LinkedinIcon } from './components/atoms/icons/LinkedinIcon';
+import { MenuIcon } from './components/atoms/icons/MenuIcon';
 
 type View = 'main' | 'settings';
 
 function App() {
   const [selectedTabs, setSelectedTabs] = useState<number[]>([]);
   const [selectedPipeline, setSelectedPipeline] =
-    useState<PipelineOperation>('summarize');
+    useState<PipelineOperation>('scrape');
   const [selectedModel, setSelectedModel] = useState<GeminiModel>(
     'gemini-2.5-flash-lite',
   );
   const [view, setView] = useState<View>('main');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [scrapeOption, setScrapeOption] = useState<ScrapeOption>('helpful');
+  const [scrapeOption, setScrapeOption] =
+    useState<ScrapeOption>('linkedin-jobs');
   const [customPrompt, setCustomPrompt] = useState('');
   const [languageOption, setLanguageOption] =
     useState<LanguageOption>('English');
   const [customLanguage, setCustomLanguage] = useState('');
   const [isCombineChecked, setIsCombineChecked] = useState(false);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('html');
+  const [showLinkedInDropdown, setShowLinkedInDropdown] = useState(false);
 
   useEffect(() => {
     const handleMessage = (message: Message) => {
@@ -86,6 +90,22 @@ function App() {
     );
     setIsProcessing(isStillProcessing);
   }, [tasks]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showLinkedInDropdown) {
+        const target = event.target as Element;
+        const dropdownContainer = target.closest('.relative');
+        if (!dropdownContainer) {
+          setShowLinkedInDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showLinkedInDropdown]);
 
   const handleTabSelection = (tabId: number) => {
     setSelectedTabs((prev) =>
@@ -148,6 +168,22 @@ function App() {
   const isLinkedInScrape =
     selectedPipeline === 'scrape' && scrapeOption === 'linkedin-jobs';
 
+  const handleLinkedInFilterToggle = async () => {
+    try {
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tabs[0]?.id) {
+        await chrome.tabs.sendMessage(tabs[0].id, {
+          type: 'LINKEDIN_FILTER_TOGGLE',
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling LinkedIn filter:', error);
+    }
+  };
+
   if (view === 'settings') {
     return <Settings onClose={() => setView('main')} />;
   }
@@ -159,13 +195,48 @@ function App() {
           <h1 className="text-xl font-bold text-white">AI Utils</h1>
           <p className="text-sm text-spotify-light-gray">Powered by Gemini</p>
         </div>
-        <button
-          aria-label="Settings"
-          onClick={() => setView('settings')}
-          className="text-spotify-light-gray hover:text-white transition-colors"
-        >
-          <GearIcon />
-        </button>
+        <div className="relative flex flex-col items-end space-y-1">
+          <button
+            aria-label="Menu"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLinkedInDropdown(!showLinkedInDropdown);
+            }}
+            className="text-spotify-light-gray hover:text-white transition-colors p-1"
+          >
+            <MenuIcon />
+          </button>
+          {showLinkedInDropdown && (
+            <div className="absolute top-full right-0 mt-1 flex flex-col items-end space-y-1 bg-spotify-gray rounded-md p-1 shadow-lg z-10 min-w-32">
+              <button
+                aria-label="Settings"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setView('settings');
+                  setShowLinkedInDropdown(false);
+                }}
+                className="w-full text-left text-spotify-light-gray hover:text-white bg-spotify-gray hover:bg-spotify-gray/80 transition-colors p-2 flex items-center space-x-2 rounded"
+              >
+                <GearIcon />
+                <span className="text-xs">Settings</span>
+              </button>
+              {isLinkedInScrape && (
+                <button
+                  aria-label="LinkedIn Filter"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleLinkedInFilterToggle();
+                    setShowLinkedInDropdown(false);
+                  }}
+                  className="w-full text-left text-spotify-light-gray hover:text-white bg-spotify-gray hover:bg-spotify-gray/80 transition-colors p-2 flex items-center space-x-2 rounded"
+                >
+                  <LinkedinIcon />
+                  <span className="text-xs">LinkedIn</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -220,10 +291,6 @@ function App() {
         />
       )}
 
-      <ResultsDisplay tasks={tasks} onClear={handleClearResults} />
-
-      <div className="flex-grow"></div>
-
       {isProcessing ? (
         <Button onClick={handleCancel} variant="secondary">
           Cancel
@@ -233,6 +300,10 @@ function App() {
           Start Processing
         </Button>
       )}
+
+      <div className="flex-grow"></div>
+
+      <ResultsDisplay tasks={tasks} onClear={handleClearResults} />
     </div>
   );
 }

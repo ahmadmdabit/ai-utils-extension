@@ -1,0 +1,50 @@
+export function LinkedinIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="w-6 h-6"
+    >
+      <g>
+        <g>
+          <circle
+            cx="6"
+            cy="6"
+            r="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <rect
+            height="10"
+            r="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            width="3"
+            x="4.5"
+            y="9.5"
+          />
+          <path
+            d="M15.5,9.5a3.6,3.6,0,0,0-3,1.5V9.5h-3v10h3V14c0-1.66.89-2.5,2-2.5s2,.84,2,2.5v5.5h3V14C19.5,11.27,18,9.5,15.5,9.5Z"
+            r="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <rect
+            height="21"
+            rx="1.5"
+            ry="1.5"
+            r="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            width="21"
+            x="1.5"
+            y="1.5"
+          />
+        </g>
+      </g>
+    </svg>
+  );
+}

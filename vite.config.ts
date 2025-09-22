@@ -34,6 +34,11 @@ export default defineConfig({
       input: {
         sidepanel: resolve(__dirname, 'sidepanel.html'),
         service_worker: resolve(__dirname, 'src/background/service-worker.ts'),
+        content_script: resolve(
+          __dirname,
+          'src/content/linkedin-filter-content.ts',
+        ),
+        filter_styles: resolve(__dirname, 'src/styles/linkedin-filter.css'),
       },
       output: {
         // THE FIX IS HERE: Use a function to control output paths
@@ -42,11 +47,26 @@ export default defineConfig({
           if (chunkInfo.name === 'service_worker') {
             return 'service-worker.js';
           }
+
+          // If the entry point is our content script, place it at the root.
+          if (chunkInfo.name === 'content_script') {
+            return 'content-script.js';
+          }
+
           // Otherwise, place it in the assets folder.
           return 'assets/[name].js';
         },
         chunkFileNames: `assets/chunk-[name].js`,
-        assetFileNames: `assets/asset-[name].[ext]`,
+        assetFileNames: (assetInfo) => {
+          // If it's a CSS file, place it at the root
+
+          if (assetInfo.name?.includes('filter_styles')) {
+            console.log(assetInfo.name);
+            return 'linkedin-filter.css';
+          }
+          // Otherwise, place it in the assets folder
+          return `assets/asset-[name].[ext]`;
+        },
       },
     },
   },
