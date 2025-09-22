@@ -17,6 +17,7 @@
   - **Headings & Links**: Quickly pull all headings or hyperlinks.
   - **Tabular Data**: Extract data from HTML tables.
   - **LinkedIn Jobs Parser**: A specialized scraper that extracts job details from a LinkedIn search page and can generate an interactive HTML report with client-side filtering and sorting.
+  - **LinkedIn Job Filter**: A powerful client-side filtering system that enhances LinkedIn job search pages with real-time filtering, draggable UI, and user-controlled activation.
   - **Custom Prompts (AI)**: Ask the AI to find exactly what you need.
 - **Direct Translation**: Translate the content of any tab to your preferred language.
 
@@ -32,6 +33,16 @@
 - **Configurable Timeouts**: Set processing timeouts in the Settings panel to prevent indefinite processing.
 - **Tab Refresh**: Refresh the tab list with the reload button to see your latest open tabs.
 - **Output Format Selection**: For LinkedIn job scraping, choose between JSON and interactive HTML output formats.
+
+### 🔍 LinkedIn Job Filtering
+- **User-Controlled Activation**: Toggle the LinkedIn job filter on/off directly from the extension sidepanel - no automatic injection.
+- **Real-Time Filtering**: Search across job titles, companies, and locations with instant results.
+- **Smart Status Filters**: Filter by job status (Easy Apply, Promoted, Applied, Viewed).
+- **Hide Options**: Hide applied or viewed jobs to focus on new opportunities.
+- **Draggable Interface**: Move the filter panel anywhere on the page with position persistence using Chrome storage.
+- **Professional UI**: Matches LinkedIn's design language with a clean, modern interface.
+- **Performance Optimized**: Uses CSS-based filtering for smooth performance with debounced input handling.
+- **Safe Implementation**: Preserves LinkedIn's functionality while enhancing the job search experience.
 
 ### 📊 Testing & Quality
 - **Comprehensive Test Coverage**: 135 passing tests across 23 files with 92.67% statement coverage.
@@ -100,6 +111,21 @@ Follow these instructions to set up the development environment on your local ma
 10. If your chosen action involves translation, select a target language.
 11. Click **"Start Processing"** and watch the results appear.
 
+### Using LinkedIn Job Filter
+
+1. Navigate to a LinkedIn job search page (e.g., `https://www.linkedin.com/jobs/search/...`).
+2. Click the extension icon to open the sidepanel.
+3. Click the **menu button (☰)** in the top-right corner of the sidepanel.
+4. Select **"LinkedIn"** from the dropdown menu to activate the job filter.
+5. The filter panel will appear on the LinkedIn page with the following features:
+ - **Search Box**: Type to filter jobs by title, company, or location.
+ - **Status Dropdown**: Filter by job status (Easy Apply, Promoted, etc.).
+ - **Hide Options**: Check boxes to hide applied or viewed jobs.
+ - **Drag Handle**: Click and drag the top of the filter to reposition it.
+ - **Refresh Button**: Reload job data and reapply filters.
+ - **Clear Button**: Reset all filters to show all jobs.
+6. The filter panel remembers its position between sessions.
+
 ## 📊 Testing & Coverage
 
 The project maintains comprehensive test coverage:
@@ -124,18 +150,24 @@ This project adheres to a strict set of conventions to ensure code quality, cons
 The project uses a feature-sliced, atomic design-inspired structure to keep the codebase organized and scalable.
 
 ```
-/src
-├── assets/          # Static assets like icons
-├── background/      # Service worker and related logic
-│   ├── templates/   # HTML, CSS, JS for rendered reports
-│   └── ...
-├── components/      # Reusable, "dumb" UI components (Atoms, Molecules)
-├── features/        # "Smart" components that compose smaller components
-├── services/        # API clients and Chrome API wrappers
-├── styles/          # Global styles (index.css)
-├── types/           # TypeScript type definitions
-└── utils/           # Helper functions
-```
+ /src
+ ├── assets/          # Static assets like icons
+ ├── background/      # Service worker and related logic
+ │   ├── templates/   # HTML, CSS, JS for rendered reports
+ │   └── ...
+ ├── components/      # Reusable, "dumb" UI components (Atoms, Molecules)
+ │   ├── atoms/       # Basic building blocks (buttons, inputs, icons)
+ │   │   └── icons/   # SVG icon components
+ │   └── molecules/   # Composite components (tab items, etc.)
+ ├── content/         # Content scripts for client-side enhancements
+ │   └── helpers/     # Helper modules for content scripts
+ │     └── linkedin/  # LinkedIn-specific filtering functionality
+ ├── features/        # "Smart" components that compose smaller components
+ ├── services/        # API clients and Chrome API wrappers
+ ├── styles/          # Global styles and component-specific styles
+ ├── types/           # TypeScript type definitions
+ └── utils/           # Helper functions
+ ```
 
 ### 🔀 Git Workflow
 - **Branching Model**: We follow the **GitFlow** model.

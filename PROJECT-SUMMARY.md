@@ -25,6 +25,7 @@ When the "Scrape Data" pipeline is selected, users can choose from several metho
 - **Links:** Extracts all hyperlinks with their text and URLs.
 - **Tabular Data:** Parses and extracts content from HTML `<table>` elements.
 - **LinkedIn Jobs Parser:** A specialized scraper that extracts job details from LinkedIn search pages and can generate interactive HTML reports with client-side filtering and sorting capabilities.
+- **LinkedIn Job Filter:** A powerful client-side filtering system that enhances LinkedIn job search pages with real-time filtering, draggable UI, and user-controlled activation.
 - **Custom Prompt (AI):** Allows the user to provide a custom prompt for targeted data extraction.
 
 #### User Configuration & Experience
@@ -38,6 +39,7 @@ When the "Scrape Data" pipeline is selected, users can choose from several metho
 - **Configurable Timeouts:** Users can set processing timeouts in the Settings panel to prevent indefinite processing.
 - **Tab Refresh:** Users can refresh the tab list with the reload button to see their latest open tabs.
 - **Output Format Selection:** For LinkedIn job scraping, users can choose between JSON and interactive HTML output formats.
+- **LinkedIn Job Filter:** A comprehensive client-side filtering system with user-controlled activation, real-time search, status filtering, draggable UI, and position persistence.
 
 ---
 
@@ -63,6 +65,7 @@ The extension is built on a clean, decoupled architecture separating the user in
 
 #### Communication Layer
 - A strongly-typed messaging system (defined in `src/types/messaging.ts`) is used for all communication between the sidepanel UI and the service worker.
+- The LinkedIn filtering system uses the same messaging infrastructure for toggle control, state queries, and UI management between the sidepanel and content script.
 
 ---
 
@@ -72,6 +75,14 @@ The extension is built on a clean, decoupled architecture separating the user in
 - **`pipelines.ts`:** A declarative, data-driven definition of all available processing pipelines. This makes the workflow engine flexible and easy to extend.
 - **`scrapers.ts`:** A collection of self-contained, pure functions designed to be injected into web pages with `chrome.scripting.executeScript` for fast, deterministic DOM scraping.
 - **`renderer.ts`:** Generates interactive HTML reports for LinkedIn job scraping with client-side filtering and sorting capabilities.
+- **`linkedin-filter-content.ts`:** Main entry point for LinkedIn job filtering content script with message handling and lifecycle management.
+- **`linkedin-filter.ts`:** Core LinkedInJobFilter class with comprehensive state management and initialization logic.
+- **`linkedin-filter-ui.ts`:** Creates and manages the draggable filter UI with position persistence and event handling.
+- **`linkedin-filter-engine.ts`:** Performance-optimized filtering logic with CSS-based job hiding.
+- **`linkedin-job-parser.ts`:** Parses and validates job data from LinkedIn DOM elements.
+- **`constants.ts`:** Centralized configuration constants for selectors, URLs, and styling.
+- **`linkedin-filter.css`:** Professional styling that matches LinkedIn's design language with CSS variables.
+- **`linkedin-filter.ts`:** TypeScript interfaces for job elements, filter criteria, and UI state.
 - **Conditional UI Components:** The UI is composed of several feature components (`PipelineSelector`, `ActionOptions`, `DataScrapeOptions`, `LanguageSelector`, `OutputFormatSelector`) that are conditionally rendered based on the application's state.
 - **Cancellation Support:** The UI now includes a Cancel button that sends a `CANCEL_PROCESSING` message to the service worker.
 
@@ -110,13 +121,14 @@ The project was built with a strong emphasis on quality, consistency, and mainta
     -   **Architectural Refactor:** Evolved the backend from a simple queue to a "Vertical" pipeline processor, and finally to the "Matrix" workflow engine capable of combining both tabs and operations.
     -   **Quality Assurance:** Wrote a comprehensive suite of unit and component tests, achieving high code coverage and ensuring the application's stability.
 6.  **Phase 5: Robustness & Usability:**
-    -   **Cancellation Support:** Added process cancellation and timeout functionality.
-    -   **UI Improvements:** Added tab refresh capability and improved the settings panel.
-    -   **Enhanced Testing:** Added tests for cancellation and timeout scenarios.
-    -   **Testing Infrastructure Overhaul:** Replaced React Testing Library with native React DOM testing utilities for improved performance and maintainability.
-    -   **LinkedIn Scraping Enhancements:** Added specialized LinkedIn job scraping with interactive HTML report generation.
-    -   **New Component:** Added Counter component for UI utilities.
-    -   **Improved Text Processing:** Enhanced duplicate phrase removal in helpers.ts for better result cleaning.
+   -   **Cancellation Support:** Added process cancellation and timeout functionality.
+   -   **UI Improvements:** Added tab refresh capability and improved the settings panel.
+   -   **Enhanced Testing:** Added tests for cancellation and timeout scenarios.
+   -   **Testing Infrastructure Overhaul:** Replaced React Testing Library with native React DOM testing utilities for improved performance and maintainability.
+   -   **LinkedIn Scraping Enhancements:** Added specialized LinkedIn job scraping with interactive HTML report generation.
+   -   **LinkedIn Job Filtering System:** Implemented comprehensive client-side filtering with user-controlled toggle, draggable UI, real-time search, status filtering, and position persistence.
+   -   **New Component:** Added Counter component for UI utilities.
+   -   **Improved Text Processing:** Enhanced duplicate phrase removal in helpers.ts for better result cleaning.
 
 ---
 
@@ -134,6 +146,7 @@ The project was built with a strong emphasis on quality, consistency, and mainta
 - **LinkedIn Job Status Display**: Improved CSS styling for better visual hierarchy (`src/templates/report.css`).
 - **Enhanced LinkedIn URL Detection**: Service worker now handles both `/jobs/search` and `/jobs/collections` URLs.
 - **Output Format Selection**: Users can choose between JSON and HTML output for LinkedIn scrapes.
+- **Comprehensive LinkedIn Job Filtering System**: Implemented user-controlled toggle system, draggable filter widget, real-time search and filtering, professional UI matching LinkedIn's design, performance optimizations, and position persistence using Chrome storage.
 
 ## 7. Code Quality Metrics
 

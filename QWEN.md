@@ -6,6 +6,8 @@ This document provides essential context about the "AI Utils Extension" project 
 
 This is a Chrome Extension built with React, TypeScript, and Vite. It leverages Google's Gemini AI to provide intelligent features for managing and analyzing browser tabs. Key features include AI-powered summarization, multi-step processing pipelines (e.g., "Translated Summary"), language selection, model selection, data extraction, and the ability to combine results from multiple tabs, all presented in a modern, Spotify-inspired UI.
 
+The extension also includes a sophisticated client-side LinkedIn job filtering system that enhances LinkedIn job search pages with real-time filtering, draggable UI, and user-controlled activation.
+
 ## Tech Stack
 
 *   **Framework:** React 19 (with Hooks), Vite
@@ -22,18 +24,24 @@ This is a Chrome Extension built with React, TypeScript, and Vite. It leverages 
 The project uses a feature-sliced, atomic design-inspired structure:
 
 ```
-/src
-├── assets/          # Static assets like icons
-├── background/      # Service worker and related logic
-│   ├── templates/   # HTML, CSS, JS for rendered reports
-│   └── ...
-├── components/      # Reusable, "dumb" UI components (Atoms, Molecules)
-├── features/        # "Smart" components that compose smaller components
-├── services/        # API clients and Chrome API wrappers
-├── styles/          # Global styles (index.css)
-├── types/           # TypeScript type definitions
-└── utils/           # Helper functions
-```
+ /src
+ ├── assets/          # Static assets like icons
+ ├── background/      # Service worker and related logic
+ │   ├── templates/   # HTML, CSS, JS for rendered reports
+ │   └── ...
+ ├── components/      # Reusable, "dumb" UI components (Atoms, Molecules)
+ │   ├── atoms/       # Basic building blocks (buttons, inputs, icons)
+ │   │   └── icons/   # SVG icon components
+ │   └── molecules/   # Composite components (tab items, etc.)
+ ├── content/         # Content scripts for client-side enhancements
+ │   └── helpers/     # Helper modules for content scripts
+ │     └── linkedin/  # LinkedIn-specific filtering functionality
+ ├── features/        # "Smart" components that compose smaller components
+ ├── services/        # API clients and Chrome API wrappers
+ ├── styles/          # Global styles and component-specific styles
+ ├── types/           # TypeScript type definitions
+ └── utils/           # Helper functions
+ ```
 
 ## Building and Running
 
@@ -70,6 +78,14 @@ To load the extension in Chrome:
 *   `src/features/PipelineSelector.tsx`: Component for selecting the main processing action.
 *   `src/features/ActionOptions.tsx`: Component for configuring the AI model and "Combine Tabs" option.
 *   `src/features/OutputFormatSelector.tsx`: Component for selecting output format for LinkedIn job scraping.
+*   `src/content/linkedin-filter-content.ts`: Main entry point for LinkedIn job filtering content script.
+*   `src/content/helpers/linkedin/linkedin-filter.ts`: Core LinkedIn job filter class with state management.
+*   `src/content/helpers/linkedin/linkedin-filter-ui.ts`: UI creation and drag functionality for the filter widget.
+*   `src/content/helpers/linkedin/linkedin-filter-engine.ts`: Performance-optimized filtering logic.
+*   `src/content/helpers/linkedin/linkedin-job-parser.ts`: Job data extraction and validation.
+*   `src/content/helpers/linkedin/constants.ts`: Configuration constants for LinkedIn filtering.
+*   `src/styles/linkedin-filter.css`: Professional styling matching LinkedIn's design language.
+*   `src/types/linkedin-filter.ts`: TypeScript interfaces for LinkedIn filter functionality.
 
 ## React Development Expertise
 
